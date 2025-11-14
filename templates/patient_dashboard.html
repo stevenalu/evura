@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - E-Vura{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold;">
+            {{ patient.username[0]|upper }}
+        </div>
+        <div>
+            <h1 style="font-size: 28px; margin-bottom: 5px;">Welcome back, {{ patient.username }}! 👋</h1>
+            <p style="color: #6b7280; font-size: 16px;">Your complete health journey is accessible anytime, anywhere</p>
+        </div>
+    </div>
+</div>
+
+<!-- Chronic Disease Alert -->
+{% if patient.chronic_conditions %}
+<div style="background: #fef3c7; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="color: #92400e; margin-bottom: 10px;">
+        <i class="fas fa-exclamation-triangle"></i> Active Chronic Conditions
+    </h3>
+    <p style="color: #78350f; margin-bottom: 10px; font-size: 16px; font-weight: 600;">{{ patient.chronic_conditions }}</p>
+    <p style="color: #92400e; margin: 0; font-size: 14px;">
+        <i class="fas fa-info-circle"></i> This information is automatically shared with all your doctors to ensure continuity of care and prevent repeated diagnoses.
+    </p>
+</div>
+{% endif %}
+
+<!-- Statistics Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #0d9488;">
+        <div style="font-size: 36px; margin-bottom: 10px;">📅</div>
+        <div style="font-size: 32px; font-weight: bold; color: #0d9488; margin-bottom: 5px;">{{ patient.appointments|length }}</div>
+        <div style="color: #6b7280; font-size: 14px;">Total Appointments</div>
+    </div>
+    
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #10b981;">
+        <div style="font-size: 36px; margin-bottom: 10px;">🩺</div>
+        <div style="font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 5px;">
+            {% set total_records = (patient.medical_files|length) + (patient.test_results|length) + (patient.procedures|length) + (patient.prescriptions|length) %}
+            {{ total_records }}
+        </div>
+        <div style="color: #6b7280; font-size: 14px;">Medical Records</div>
+    </div>
+    
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #3b82f6;">
+        <div style="font-size: 36px; margin-bottom: 10px;">👩‍⚕️</div>
+        <div style="font-size: 32px; font-weight: bold; color: #3b82f6; margin-bottom: 5px;">
+            {% set all_doctors = [] %}
+            {% for apt in patient.appointments %}
+                {% if apt.doctor not in all_doctors %}
+                    {% set _ = all_doctors.append(apt.doctor) %}
+                {% endif %}
+            {% endfor %}
+            {{ all_doctors|length }}
+        </div>
+        <div style="color: #6b7280; font-size: 14px;">Doctors Consulted</div>
+    </div>
+</div>
+
+<!-- Medical Records Quick Access - NEW SECTION -->
+<div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px;">
+    <h3 style="color: #0d9488; margin-bottom: 15px;">
+        <i class="fas fa-file-medical"></i> My Medical Records
+    </h3>
+    <p style="color: #666; margin-bottom: 20px;">View your complete medical history and test results</p>
+    
+    {% set total_records = (patient.medical_files|length) + (patient.test_results|length) + (patient.procedures|length) + (patient.prescriptions|length) %}
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+        <div style="text-align: center; padding: 15px; background: #f0fdfa; border-radius: 8px; border: 1px solid #99f6e4;">
+            <h3 style="color: #0d9488; margin-bottom: 5px; font-size: 28px;">{{ patient.medical_files|length }}</h3>
+            <p style="color: #666; font-size: 0.9rem; margin: 0;">Medical Files</p>
+            <p style="color: #999; font-size: 0.75rem; margin-top: 3px;">X-rays, MRIs, Lab Reports</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+            <h3 style="color: #3b82f6; margin-bottom: 5px; font-size: 28px;">{{ patient.test_results|length }}</h3>
+            <p style="color: #666; font-size: 0.9rem; margin: 0;">Test Results</p>
+            <p style="color: #999; font-size: 0.75rem; margin-top: 3px;">Blood work, Imaging</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background: #fee2e2; border-radius: 8px; border: 1px solid #fecaca;">
+            <h3 style="color: #ef4444; margin-bottom: 5px; font-size: 28px;">{{ patient.procedures|length }}</h3>
+            <p style="color: #666; font-size: 0.9rem; margin: 0;">Procedures</p>
+            <p style="color: #999; font-size: 0.75rem; margin-top: 3px;">Surgeries, Treatments</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
+            <h3 style="color: #f59e0b; margin-bottom: 5px; font-size: 28px;">{{ patient.prescriptions|length }}</h3>
+            <p style="color: #666; font-size: 0.9rem; margin: 0;">Prescriptions</p>
+            <p style="color: #999; font-size: 0.75rem; margin-top: 3px;">Medications, Treatments</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('medical_records') }}" 
+           style="flex: 1; background: #0d9488; color: white; padding: 12px; border-radius: 8px; text-decoration: none; text-align: center; font-weight: 500;">
+            <i class="fas fa-eye"></i> View All Records
+        </a>
+        <a href="{{ url_for('upload_records') }}" 
+           style="flex: 1; background: white; color: #0d9488; padding: 12px; border: 2px solid #0d9488; border-radius: 8px; text-decoration: none; text-align: center; font-weight: 500;">
+            <i class="fas fa-upload"></i> Upload New
+        </a>
+    </div>
+</div>
+
+<!-- My Appointments Section -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+        <h2><i class="fas fa-calendar-alt"></i> My Appointments</h2>
+        <button onclick="showBookingModal()" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Book New Appointment
+        </button>
+    </div>
+    
+    {% if patient.appointments %}
+        {% for apt in patient.appointments|sort(attribute='appointment_date', reverse=True) %}
+            <div style="padding: 20px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; transition: box-shadow 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="margin-bottom: 5px; color: #111827;">
+                            Dr. {{ apt.doctor.username }}
+                            {% if apt.patient.chronic_conditions %}
+                            <span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Chronic Patient
+                            </span>
+                            {% endif %}
+                        </h4>
+                        <p style="color: #6b7280; margin: 0; font-size: 14px;">{{ apt.doctor.specialization or 'General Practice' }} - {{ apt.doctor.hospital or 'Private Practice' }}</p>
+                    </div>
+                    <span style="padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; 
+                        {% if apt.status == 'confirmed' %}background: #10b981; color: white;
+                        {% elif apt.status == 'completed' %}background: #6b7280; color: white;
+                        {% elif apt.status == 'cancelled' %}background: #ef4444; color: white;
+                        {% else %}background: #f59e0b; color: white;{% endif %}">
+                        {{ apt.status|title }}
+                    </span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: auto auto 1fr; gap: 20px; align-items: center; font-size: 14px; color: #4b5563; margin-bottom: 15px;">
+                    <div>
+                        <i class="fas fa-calendar" style="color: #0d9488; margin-right: 8px;"></i>
+                        {{ apt.appointment_date.strftime('%B %d, %Y') if apt.appointment_date else 'Date pending' }}
+                    </div>
+                    <div>
+                        <i class="fas fa-clock" style="color: #0d9488; margin-right: 8px;"></i>
+                        {{ apt.appointment_time or 'Time pending' }}
+                    </div>
+                    {% if apt.reason %}
+                    <div>
+                        <i class="fas fa-comment" style="color: #0d9488; margin-right: 8px;"></i>
+                        {{ apt.reason }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if apt.status == 'confirmed' or apt.status == 'completed' %}
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 10px;">
+                    <a href="{{ url_for('view_patient_history', patient_id=patient.id) }}" 
+                       style="color: #0d9488; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-history"></i> View My Complete Medical History
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 40px; color: #9ca3af;">
+            <i class="fas fa-calendar-times" style="font-size: 48px; margin-bottom: 15px;"></i>
+            <h3 style="margin-bottom: 10px;">No Appointments Yet</h3>
+            <p>Book your first appointment with a qualified doctor</p>
+            <button onclick="showBookingModal()" class="btn btn-primary" style="margin-top: 15px;">
+                <i class="fas fa-calendar-plus"></i> Book Appointment
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+    <a href="{{ url_for('find_doctors') }}" class="btn btn-primary" style="padding: 20px; text-align: center; text-decoration: none; display: block;">
+        <i class="fas fa-search" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        Find Doctors
+    </a>
+    
+    <a href="{{ url_for('medical_records') }}" class="btn" style="padding: 20px; text-align: center; text-decoration: none; display: block; background: #10b981; color: white;">
+        <i class="fas fa-file-medical" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        Medical Records
+    </a>
+    
+    <a href="{{ url_for('patient_profile') }}" class="btn btn-secondary" style="padding: 20px; text-align: center; text-decoration: none; display: block;">
+        <i class="fas fa-user" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        Update Profile
+    </a>
+    
+    <button onclick="showBookingModal()" class="btn" style="padding: 20px; text-align: center; background: #f59e0b; color: white;">
+        <i class="fas fa-calendar-plus" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        Book Appointment
+    </button>
+</div>
+
+<!-- Information Box -->
+<div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-left: 4px solid #0ea5e9; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="color: #0c4a6e; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Your Health Journey Matters</h3>
+    <p style="color: #075985; line-height: 1.8; margin: 0; font-size: 15px;">
+        E-Vura maintains your complete medical timeline. Whether you visit the same doctor in 2025 after seeing them in 2012, 
+        or switch to a completely different hospital, your <strong>chronic conditions</strong>, <strong>past treatments</strong>, 
+        <strong>test results</strong>, and <strong>complete medical history</strong> are always accessible to provide the best possible care and prevent duplicate tests.
+    </p>
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bae6fd;">
+        <p style="color: #0c4a6e; margin: 0; font-size: 13px;">
+            <i class="fas fa-shield-alt"></i> <strong>Secure & Private:</strong> Your medical records are encrypted and only accessible to doctors you've authorized through appointments.
+        </p>
+    </div>
+</div>
+
+<!-- Booking Modal -->
+<div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 20px; color: #0d9488;">
+            <i class="fas fa-calendar-plus"></i> Book an Appointment
+        </h3>
+        
+        <form method="POST" action="{{ url_for('book_appointment') }}">
+            <div class="form-group">
+                <label><i class="fas fa-user-md"></i> Select Doctor</label>
+                <select name="doctor_id" required>
+                    <option value="">Choose a doctor...</option>
+                    {% for doctor in doctors %}
+                        <option value="{{ doctor.id }}">
+                            Dr. {{ doctor.username }} - {{ doctor.specialization or 'General Practice' }} ({{ doctor.hospital or 'Private Practice' }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-calendar"></i> Preferred Date</label>
+                <input type="date" name="appointment_date" required>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-clock"></i> Preferred Time</label>
+                <select name="appointment_time" required>
+                    <option value="">Select time...</option>
+                    <option value="08:00 AM">8:00 AM</option>
+                    <option value="08:30 AM">8:30 AM</option>
+                    <option value="09:00 AM">9:00 AM</option>
+                    <option value="09:30 AM">9:30 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="10:30 AM">10:30 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="11:30 AM">11:30 AM</option>
+                    <option value="02:00 PM">2:00 PM</option>
+                    <option value="02:30 PM">2:30 PM</option>
+                    <option value="03:00 PM">3:00 PM</option>
+                    <option value="03:30 PM">3:30 PM</option>
+                    <option value="04:00 PM">4:00 PM</option>
+                    <option value="04:30 PM">4:30 PM</option>
+                    <option value="05:00 PM">5:00 PM</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-comment"></i> Reason for Visit (optional)</label>
+                <textarea name="reason" rows="3" placeholder="Brief description of your health concern"></textarea>
+            </div>
+
+            {% if patient.chronic_conditions %}
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> <strong>Note:</strong> Your chronic condition information will be automatically shared with the doctor: <strong>{{ patient.chronic_conditions }}</strong>
+                </p>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-paper-plane"></i> Send Request
+                </button>
+                <button type="button" onclick="hideBookingModal()" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showBookingModal() {
+        document.getElementById('bookingModal').style.display = 'flex';
+    }
+
+    function hideBookingModal() {
+        document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    // Close modal on outside click
+    document.getElementById('bookingModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideBookingModal();
+        }
+    });
+
+    // Set minimum date to today
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.querySelector('input[name="appointment_date"]');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+        }
+    });
+</script>
+{% endblock %}

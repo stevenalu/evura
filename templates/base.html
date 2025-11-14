@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Vura - Your Health Journey{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body{% if request.endpoint == 'index' %} class="landing-body"{% endif %}>
+    <!-- Flash Messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">
+                        {% if category == 'success' %}<i class="fas fa-check-circle"></i>
+                        {% elif category == 'danger' or category == 'error' %}<i class="fas fa-exclamation-circle"></i>
+                        {% elif category == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+                        {% elif category == 'info' %}<i class="fas fa-info-circle"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    {% if request.endpoint in ['index', 'login', 'register_patient', 'register_doctor'] %}
+        <!-- Single page layout (landing, login, register) -->
+        <div class="single-page">
+            {% block content1 %}{% endblock %}
+        </div>
+        
+        {% if request.endpoint == 'index' %}
+        <!-- Footer for landing page -->
+        <footer class="footer">
+            <p><strong>E-Vura Healthcare Platform</strong> | Empowering Health Through Technology</p>
+            <p> Bumbogo, Kigali Innovation City, Kigali, Rwanda</p>
+            <p> 0798200581 | info@e-vura.com</p>
+        </footer>
+        {% endif %}
+    {% else %}
+        <!-- Dashboard layout with sidebar navigation -->
+        <div class="dashboard-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="logo">
+                    <h2><i class="fas fa-heartbeat"></i> E-Vura</h2>
+                    <p>Healthcare Platform</p>
+                </div>
+                <ul class="nav-menu">
+                    {% if session.user_type == 'patient' %}
+                        <li {% if request.endpoint == 'patient_dashboard' %}class="active"{% endif %}>
+                            <a href="{{ url_for('patient_dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <!-- NEW: Medical Records Link -->
+                        <li {% if request.endpoint == 'medical_records' %}class="active"{% endif %}>
+                            <a href="{{ url_for('medical_records') }}">
+                                <i class="fas fa-file-medical"></i> Medical Records
+                            </a>
+                        </li>
+                        <!-- END NEW -->
+                        <li {% if request.endpoint == 'find_doctors' %}class="active"{% endif %}>
+                            <a href="{{ url_for('find_doctors') }}">
+                                <i class="fas fa-user-md"></i> Find Doctors
+                            </a>
+                        </li>
+                        <li {% if request.endpoint == 'patient_profile' %}class="active"{% endif %}>
+                            <a href="{{ url_for('patient_profile') }}">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    {% elif session.user_type == 'doctor' %}
+                    <li {% if request.endpoint == 'doctor_dashboard' %}class="active"{% endif %}>
+                            <a href="{{ url_for('doctor_dashboard') }}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li {% if request.endpoint == 'consultations' %}class="active"{% endif %}>
+                            <a href="{{ url_for('consultations') }}">
+                                <i class="fas fa-stethoscope"></i> Consultations
+                            </a>
+                        </li>
+                        <li {% if request.endpoint == 'doctor_profile' %}class="active"{% endif %}>
+                            <a href="{{ url_for('doctor_profile') }}">
+                                <i class="fas fa-user-md"></i> My Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <!-- Dashboard Footer -->
+        <div style="background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 15px; text-align: center; color: #6b7280; font-size: 14px; margin-left: 260px;">
+            <p>© 2025 E-Vura Healthcare Platform | Contact: qwerty@e-vura.com | +250 798 200 581</p>
+        </div>
+    {% endif %}
+
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(() => {
+            const flashes = document.querySelectorAll('.flash');
+            flashes.forEach(flash => {
+                flash.style.opacity = '0';
+                flash.style.transform = 'translateX(400px)';
+                setTimeout(() => flash.remove(), 300);
+            });
+        }, 5000);
+
+        // Set minimum date to today for date inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            const today = new Date().toISOString().split('T')[0];
+            dateInputs.forEach(input => {
+                if (!input.value) {
+                    input.min = today;
+                }
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

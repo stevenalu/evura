@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Consultations - E-Vura{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <div>
+        <h1 style="font-size: 28px; color: #111827; margin-bottom: 5px;">
+            <i class="fas fa-stethoscope"></i> Consultation Management
+        </h1>
+        <p style="color: #6b7280;">Manage all patient appointments and view complete medical histories</p>
+    </div>
+    <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Consultations List -->
+<div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    {% if appointments %}
+        {% for apt in appointments %}
+            <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-bottom: 25px; transition: all 0.3s ease; {% if apt.patient.has_chronic_conditions() %}border-left: 5px solid #f59e0b;{% endif %} hover: box-shadow: 0 4px 15px rgba(0,0,0,0.1); hover: border-color: #0d9488;">
+                
+                <!-- Patient Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 8px; color: #111827; display: flex; align-items: center; gap: 12px;">
+                            <i class="fas fa-user"></i> {{ apt.patient.username }}
+                            {% if apt.patient.has_chronic_conditions() %}
+                                <span style="background: #fef7f0; color: #92400e; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 600;">
+                                    <i class="fas fa-exclamation-triangle"></i> CHRONIC CONDITIONS
+                                </span>
+                            {% endif %}
+                        </h3>
+                        <div style="color: #6b7280; font-size: 14px; margin-bottom: 5px;">
+                            <i class="fas fa-envelope"></i> {{ apt.patient.email }}
+                        </div>
+                        {% if apt.patient.phone %}
+                        <div style="color: #6b7280; font-size: 14px;">
+                            <i class="fas fa-phone"></i> {{ apt.patient.phone }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; 
+                            {% if apt.status == 'confirmed' %}background: #10b981; color: white;
+                            {% elif apt.status == 'completed' %}background: #6b7280; color: white;
+                            {% elif apt.status == 'cancelled' %}background: #ef4444; color: white;
+                            {% else %}background: #f59e0b; color: white;{% endif %}">
+                            {{ apt.status|title }}
+                        </span>
+                        <div style="color: #6b7280; font-size: 12px; margin-top: 5px;">
+                            Requested: {{ apt.created_at.strftime('%Y-%m-%d') if apt.created_at else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appointment Details -->
+                <div style="background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <h5 style="color: #374151; margin-bottom: 5px; font-size: 14px;">
+                                <i class="fas fa-calendar" style="color: #0d9488;"></i> Appointment Date
+                            </h5>
+                            <p style="color: #111827; margin: 0; font-weight: 600;">{{ apt.date }}</p>
+                        </div>
+                        <div>
+                            <h5 style="color: #374151; margin-bottom: 5px; font-size: 14px;">
+                                <i class="fas fa-clock" style="color: #0d9488;"></i> Time
+                            </h5>
+                            <p style="color: #111827; margin: 0; font-weight: 600;">{{ apt.time }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h5 style="color: #374151; margin-bottom: 8px; font-size: 14px;">
+                            <i class="fas fa-comment" style="color: #0d9488;"></i> Reason for Visit
+                        </h5>
+                        <p style="color: #4b5563; margin: 0; line-height: 1.6;">{{ apt.reason or 'General checkup and consultation' }}</p>
+                    </div>
+                </div>
+
+                <!-- Chronic Conditions Alert -->
+                {% if apt.patient.chronic_conditions %}
+                <div style="background: #fef7f0; border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h4 style="color: #92400e; margin-bottom: 12px; font-size: 16px;">
+                        <i class="fas fa-exclamation-triangle"></i> CHRONIC CONDITIONS ALERT
+                    </h4>
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                        <p style="color: #78350f; margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5;">
+                            {{ apt.patient.chronic_conditions }}
+                        </p>
+                    </div>
+                    <p style="color: #92400e; margin: 10px 0 0; font-size: 13px; font-style: italic;">
+                        <i class="fas fa-info-circle"></i> This patient requires special attention due to ongoing chronic health conditions.
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Patient Medical History -->
+                {% set patient_records = apt.patient.records %}
+                {% if patient_records %}
+                <div style="background: #f0fdfa; border: 1px solid #14b8a6; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h4 style="color: #065f46; margin-bottom: 15px; font-size: 16px;">
+                        <i class="fas fa-history"></i> Complete Medical History 
+                        <span style="font-size: 14px; font-weight: normal;">({{ patient_records|length }} records available)</span>
+                    </h4>
+                    {% for record in patient_records[:3] %}
+                        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #10b981;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <h5 style="color: #0d9488; margin: 0; font-size: 14px; font-weight: 600;">
+                                    {{ record.visit_date }} - Dr. {{ record.doctor.username }}
+                                </h5>
+                                {% if record.follow_up_required %}
+                                <span style="background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">
+                                    Follow-up Required
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #374151; font-size: 13px;">Diagnosis:</strong>
+                                <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.diagnosis }}</span>
+                            </div>
+                            {% if record.treatment %}
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color: #374151; font-size: 13px;">Treatment:</strong>
+                                <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.treatment }}</span>
+                            </div>
+                            {% endif %}
+                            {% if record.prescription %}
+                            <div>
+                                <strong style="color: #374151; font-size: 13px;">Prescription:</strong>
+                                <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.prescription }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    {% if patient_records|length > 3 %}
+                        <div style="text-align: center; margin-top: 15px;">
+                            <span style="color: #059669; font-weight: 600; font-size: 14px;">
+                                + {{ patient_records|length - 3 }} more medical records in patient's complete history
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div style="background: #fef7f0; border: 1px solid #f59e0b; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                    <p style="color: #92400e; margin: 0; font-size: 14px;">
+                        <i class="fas fa-info-circle"></i> <strong>New Patient:</strong> No previous medical history available in E-Vura. This will be the patient's first consultation in our system.
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Patient Information Summary -->
+                <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                    <h5 style="color: #0c4a6e; margin-bottom: 12px; font-size: 14px;">
+                        <i class="fas fa-user-circle"></i> Patient Information Summary
+                    </h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 13px;">
+                        {% if apt.patient.blood_type %}
+                        <div><strong style="color: #0c4a6e;">Blood Type:</strong> <span style="color: #1e40af;">{{ apt.patient.blood_type }}</span></div>
+                        {% endif %}
+                        {% if apt.patient.allergies %}
+                        <div><strong style="color: #0c4a6e;">Allergies:</strong> <span style="color: #1e40af;">{{ apt.patient.allergies }}</span></div>
+                        {% endif %}
+                        {% if apt.patient.emergency_contact %}
+                        <div><strong style="color: #0c4a6e;">Emergency Contact:</strong> <span style="color: #1e40af;">{{ apt.patient.emergency_contact }}</span></div>
+                        {% endif %}
+                        {% if apt.patient.date_of_birth %}
+                        <div><strong style="color: #0c4a6e;">Date of Birth:</strong> <span style="color: #1e40af;">{{ apt.patient.date_of_birth }}</span></div>
+                        {% endif %}
+                        {% if apt.patient.address %}
+                        <div style="grid-column: 1 / -1;"><strong style="color: #0c4a6e;">Address:</strong> <span style="color: #1e40af;">{{ apt.patient.address }}</span></div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                {% if apt.status == 'pending' %}
+                    <div style="display: flex; gap: 12px;">
+                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                            <input type="hidden" name="status" value="confirmed">
+                            <button type="submit" class="btn btn-success" style="width: 100%; padding: 12px; font-size: 15px;">
+                                <i class="fas fa-check"></i> Accept Appointment Request
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px; font-size: 15px;">
+                                <i class="fas fa-times"></i> Reject Request
+                            </button>
+                        </form>
+                    </div>
+                {% elif apt.status == 'confirmed' %}
+                    <div style="display: flex; gap: 12px;">
+                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">
+                                <i class="fas fa-check-double"></i> Mark Consultation as Completed
+                            </button>
+                        </form>
+                        <button onclick="showAddRecordModal({{ apt.id }})" class="btn btn-secondary" style="padding: 12px;">
+                            <i class="fas fa-file-medical"></i> Add Medical Record
+                        </button>
+                    </div>
+                {% else %}
+                    <div style="text-align: center; color: #6b7280; font-style: italic; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                        <i class="fas fa-info-circle"></i> Consultation {{ apt.status }} - No further actions available
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 80px 20px; color: #9ca3af;">
+            <i class="fas fa-stethoscope" style="font-size: 64px; margin-bottom: 20px;"></i>
+            <h3 style="color: #4b5563; margin-bottom: 15px;">No Consultation Requests</h3>
+            <p style="font-size: 16px; margin-bottom: 25px;">You don't have any consultation requests at the moment.</p>
+            <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Information Box -->
+<div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 25px; border-radius: 10px; margin-top: 30px;">
+    <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Comprehensive Patient Care with E-Vura</h4>
+    <p style="color: #047857; line-height: 1.8; margin: 0; font-size: 15px;">
+        E-Vura provides you with each patient's complete medical timeline, including <strong>chronic conditions</strong>, <strong>previous treatments</strong>, 
+        and <strong>consultation history</strong>. This comprehensive view ensures you have full context for accurate diagnosis and treatment decisions, 
+        even if it's the patient's first visit with you. <strong>No more starting from scratch</strong> - deliver superior patient care with complete medical insights.
+    </p>
+</div>
+
+<!-- Add Medical Record Modal -->
+<div id="addRecordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 15px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 20px; color: #0d9488;">
+            <i class="fas fa-file-medical"></i> Add Medical Record
+        </h3>
+        
+        <form id="recordForm" method="POST">
+            <div class="form-group">
+                <label>Diagnosis *</label>
+                <textarea name="diagnosis" rows="2" required placeholder="Primary diagnosis for this consultation"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Treatment Plan</label>
+                <textarea name="treatment" rows="3" placeholder="Treatment recommendations and procedures"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Prescription</label>
+                <textarea name="prescription" rows="2" placeholder="Medications and dosages prescribed"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Doctor's Notes</label>
+                <textarea name="notes" rows="3" placeholder="Additional observations and notes"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="follow_up_required" style="width: auto;">
+                    <span>Follow-up consultation required</span>
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Save Medical Record
+                </button>
+                <button type="button" onclick="hideAddRecordModal()" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showAddRecordModal(appointmentId) {
+        document.getElementById('recordForm').action = `/appointment/${appointmentId}/add-record`;
+        document.getElementById('addRecordModal').style.display = 'flex';
+    }
+
+    function hideAddRecordModal() {
+        document.getElementById('addRecordModal').style.display = 'none';
+    }
+
+    // Close modal on outside click
+    document.getElementById('addRecordModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideAddRecordModal();
+        }
+    });
+</script>
+{% endblock %}

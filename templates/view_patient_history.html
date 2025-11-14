@@ -1,0 +1,490 @@
+i{% extends "base.html" %}
+{% block title %}Patient Medical History - E-Vura{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div style="background: white; border-radius: 15px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+            <h1 style="color: #0d9488; margin-bottom: 10px;">
+                <i class="fas fa-user-injured"></i> {{ patient.username }}'s Medical History
+            </h1>
+            <p style="color: #666; margin-bottom: 15px;">Complete medical timeline and records</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 5px;">Email</p>
+                    <p style="color: #374151; font-weight: 500;">{{ patient.email }}</p>
+                </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 5px;">Blood Type</p>
+                    <p style="color: #374151; font-weight: 500;">{{ patient.blood_type or 'Not specified' }}</p>
+                </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 5px;">Date of Birth</p>
+                    <p style="color: #374151; font-weight: 500;">
+                        {{ patient.date_of_birth.strftime('%B %d, %Y') if patient.date_of_birth else 'Not specified' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="document.getElementById('addRecordModal').style.display='block'"
+                style="background: #0d9488; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+            <i class="fas fa-plus"></i> Add Medical Note
+        </button>
+    </div>
+</div>
+
+<!-- Chronic Conditions Alert -->
+{% if patient.chronic_conditions %}
+<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+    <h3 style="color: #92400e; margin-bottom: 10px;">
+        <i class="fas fa-exclamation-triangle"></i> CHRONIC CONDITIONS ALERT
+    </h3>
+    <p style="color: #78350f; margin: 0; font-weight: 600; font-size: 1.1rem;">{{ patient.chronic_conditions }}</p>
+    <p style="color: #92400e; margin-top: 10px; font-size: 0.9rem;">
+        <i class="fas fa-info-circle"></i> Review complete medical history before ordering tests to avoid duplicate procedures
+    </p>
+</div>
+{% endif %}
+
+<!-- Allergies Warning -->
+{% if patient.allergies %}
+<div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+    <h3 style="color: #991b1b; margin-bottom: 10px;">
+        <i class="fas fa-allergies"></i> ALLERGIES WARNING
+    </h3>
+    <p style="color: #7f1d1d; margin: 0; font-weight: 600;">{{ patient.allergies }}</p>
+</div>
+{% endif %}
+
+<!-- Medical Statistics -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <i class="fas fa-file-medical" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.9;"></i>
+        <h3 style="margin-bottom: 5px;">{{ medical_files|length }}</h3>
+        <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Medical Files</p>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <i class="fas fa-vial" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.9;"></i>
+        <h3 style="margin-bottom: 5px;">{{ test_results|length }}</h3>
+        <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Test Results</p>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <i class="fas fa-procedures" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.9;"></i>
+        <h3 style="margin-bottom: 5px;">{{ procedures|length }}</h3>
+        <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Procedures</p>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <i class="fas fa-pills" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.9;"></i>
+        <h3 style="margin-bottom: 5px;">{{ prescriptions|length }}</h3>
+        <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Prescriptions</p>
+    </div>
+</div>
+
+<!-- Quick Navigation Tabs -->
+<div style="background: white; border-radius: 15px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button onclick="filterTimeline('all')" class="filter-btn active" data-filter="all"
+                style="padding: 10px 20px; border: 2px solid #0d9488; background: #0d9488; color: white; border-radius: 8px; cursor: pointer; font-weight: 500;">
+            All Records
+        </button>
+        <button onclick="filterTimeline('file')" class="filter-btn" data-filter="file"
+                style="padding: 10px 20px; border: 2px solid #0d9488; background: white; color: #0d9488; border-radius: 8px; cursor: pointer; font-weight: 500;">
+            Files ({{ medical_files|length }})
+        </button>
+        <button onclick="filterTimeline('test')" class="filter-btn" data-filter="test"
+                style="padding: 10px 20px; border: 2px solid #3b82f6; background: white; color: #3b82f6; border-radius: 8px; cursor: pointer; font-weight: 500;">
+            Tests ({{ test_results|length }})
+        </button>
+        <button onclick="filterTimeline('procedure')" class="filter-btn" data-filter="procedure"
+                style="padding: 10px 20px; border: 2px solid #ef4444; background: white; color: #ef4444; border-radius: 8px; cursor: pointer; font-weight: 500;">
+            Procedures ({{ procedures|length }})
+        </button>
+        <button onclick="filterTimeline('prescription')" class="filter-btn" data-filter="prescription"
+                style="padding: 10px 20px; border: 2px solid #f59e0b; background: white; color: #f59e0b; border-radius: 8px; cursor: pointer; font-weight: 500;">
+            Prescriptions ({{ prescriptions|length }})
+        </button>
+        <button onclick="filterTimeline('chronic')" class="filter-btn" data-filter="chronic"
+                style="padding: 10px 20px; border: 2px solid #f59e0b; background: white; color: #92400e; border-radius: 8px; cursor: pointer; font-weight: 500;">
+            <i class="fas fa-exclamation-triangle"></i> Chronic Only
+        </button>
+    </div>
+</div>
+
+<!-- Complete Medical Timeline -->
+<div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h2 style="color: #333; margin-bottom: 25px;">
+        <i class="fas fa-history"></i> Complete Medical Timeline
+    </h2>
+    
+    {% if timeline %}
+    <div style="position: relative; padding-left: 40px;">
+        <!-- Timeline Line -->
+        <div style="position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #e5e7eb;"></div>
+        
+        {% for item in timeline %}
+        <div class="timeline-item" data-type="{{ item.type }}" 
+             data-chronic="{{ 'true' if (item.type == 'file' and item.data.is_chronic_related) or (item.type == 'test' and item.data.is_chronic_related) or (item.type == 'procedure' and item.data.is_chronic_related) or (item.type == 'prescription' and item.data.is_chronic_related) else 'false' }}"
+             style="position: relative; margin-bottom: 30px;">
+            <!-- Timeline Dot -->
+            <div style="position: absolute; left: -32px; width: 12px; height: 12px; background: 
+                {% if item.type == 'file' %}#0d9488{% elif item.type == 'test' %}#3b82f6{% elif item.type == 'procedure' %}#ef4444{% else %}#f59e0b{% endif %}; 
+                border-radius: 50%; border: 3px solid white;"></div>
+            
+            <!-- Timeline Card -->
+            <div style="background: #f9fafb; border-radius: 10px; padding: 20px; border-left: 4px solid 
+                {% if item.type == 'file' %}#0d9488{% elif item.type == 'test' %}#3b82f6{% elif item.type == 'procedure' %}#ef4444{% else %}#f59e0b{% endif %};">
+                
+                <!-- Date -->
+                <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 10px;">
+                    <i class="fas fa-calendar"></i> {{ item.date.strftime('%B %d, %Y') }}
+                </p>
+                
+                {% if item.type == 'file' %}
+                <!-- Medical File -->
+                <h4 style="color: #0d9488; margin-bottom: 10px;">
+                    <i class="fas fa-file-medical"></i> {{ item.data.file_type }}
+                    {% if item.data.is_chronic_related %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i> CHRONIC: {{ item.data.chronic_condition }}
+                    </span>
+                    {% endif %}
+                </h4>
+                <p style="color: #374151; margin-bottom: 10px;">{{ item.data.description }}</p>
+                {% if item.data.diagnosis %}
+                <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 10px;">
+                    <strong>Diagnosis:</strong> {{ item.data.diagnosis }}
+                </p>
+                {% endif %}
+                <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">
+                    <i class="fas fa-hospital"></i> {{ item.data.hospital_name or 'Hospital not specified' }}
+                    {% if item.data.doctor %}
+                    | <i class="fas fa-user-md"></i> Uploaded by {{ item.data.doctor.username }}
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('download_medical_file', file_id=item.data.id) }}" 
+                   style="background: #0d9488; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                    <i class="fas fa-download"></i> Download {{ item.data.original_filename }}
+                </a>
+                
+                {% elif item.type == 'test' %}
+                <!-- Test Result -->
+                <h4 style="color: #3b82f6; margin-bottom: 10px;">
+                    <i class="fas fa-vial"></i> {{ item.data.test_name }}
+                    {% if item.data.is_chronic_related %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i> CHRONIC: {{ item.data.chronic_condition }}
+                    </span>
+                    {% endif %}
+                </h4>
+                <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 10px;">
+                    <strong>Type:</strong> {{ item.data.test_type }}
+                </p>
+                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <p style="color: #374151; margin-bottom: 5px;">
+                        <strong>Result:</strong> {{ item.data.result_value }}
+                    </p>
+                    {% if item.data.normal_range %}
+                    <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 5px;">
+                        <strong>Normal Range:</strong> {{ item.data.normal_range }}
+                    </p>
+                    {% endif %}
+                    {% if item.data.interpretation %}
+                    <p style="color: #374151; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-style: italic;">
+                        <strong>Interpretation:</strong> {{ item.data.interpretation }}
+                    </p>
+                    {% endif %}
+                </div>
+                <p style="color: #6b7280; font-size: 0.9rem;">
+                    <i class="fas fa-hospital"></i> {{ item.data.hospital_name or 'Hospital not specified' }}
+                    {% if item.data.doctor %}
+                    | <i class="fas fa-user-md"></i> Ordered by {{ item.data.doctor.username }}
+                    {% endif %}
+                </p>
+                
+                {% elif item.type == 'procedure' %}
+                <!-- Procedure -->
+                <h4 style="color: #ef4444; margin-bottom: 10px;">
+                    <i class="fas fa-procedures"></i> {{ item.data.procedure_name }}
+                    {% if item.data.is_chronic_related %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i> CHRONIC: {{ item.data.chronic_condition }}
+                    </span>
+                    {% endif %}
+                </h4>
+                <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 10px;">
+                    <strong>Type:</strong> {{ item.data.procedure_type }}
+                </p>
+                <p style="color: #374151; margin-bottom: 10px;">{{ item.data.description }}</p>
+                {% if item.data.outcome %}
+                <div style="background: #d1fae5; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                    <p style="color: #059669; margin: 0; font-weight: 500;">
+                        <i class="fas fa-check-circle"></i> <strong>Outcome:</strong> {{ item.data.outcome }}
+                    </p>
+                </div>
+                {% endif %}
+                {% if item.data.complications %}
+                <div style="background: #fee2e2; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                    <p style="color: #dc2626; margin: 0; font-weight: 500;">
+                        <i class="fas fa-exclamation-circle"></i> <strong>Complications:</strong> {{ item.data.complications }}
+                    </p>
+                </div>
+                {% endif %}
+                <p style="color: #6b7280; font-size: 0.9rem;">
+                    <i class="fas fa-hospital"></i> {{ item.data.hospital_name or 'Hospital not specified' }}
+                    {% if item.data.doctor %}
+                    | <i class="fas fa-user-md"></i> Performed by {{ item.data.doctor.username }}
+                    {% endif %}
+                </p>
+                
+                {% else %}
+                <!-- Prescription -->
+                <h4 style="color: #f59e0b; margin-bottom: 10px;">
+                    <i class="fas fa-pills"></i> {{ item.data.medication_name }}
+                    {% if item.data.is_chronic_related %}
+                    <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle"></i> CHRONIC: {{ item.data.chronic_condition }}
+                    </span>
+                    {% endif %}
+                </h4>
+                <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                        <p style="color: #374151; margin: 0;">
+                            <strong>Dosage:</strong> {{ item.data.dosage }}
+                        </p>
+                        <p style="color: #374151; margin: 0;">
+                            <strong>Frequency:</strong> {{ item.data.frequency }}
+                        </p>
+                        <p style="color: #374151; margin: 0;">
+                            <strong>Duration:</strong> {{ item.data.duration }}
+                        </p>
+                        <p style="color: #374151; margin: 0;">
+                            <strong>Start Date:</strong> {{ item.data.start_date.strftime('%b %d, %Y') }}
+                        </p>
+                    </div>
+                    <p style="color: #6b7280; margin: 0; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+                        <strong>Reason:</strong> {{ item.data.reason }}
+                    </p>
+                    {% if item.data.instructions %}
+                    <p style="color: #6b7280; margin: 10px 0 0 0; font-style: italic;">
+                        <strong>Instructions:</strong> {{ item.data.instructions }}
+                    </p>
+                    {% endif %}
+                    {% if item.data.effectiveness %}
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
+                        <p style="color: {% if item.data.effectiveness == 'Effective' %}#059669{% elif item.data.effectiveness == 'Partial' %}#f59e0b{% else %}#ef4444{% endif %}; margin: 0; font-weight: 600;">
+                            <i class="fas fa-check-circle"></i> Treatment Effectiveness: {{ item.data.effectiveness }}
+                        </p>
+                        {% if item.data.side_effects %}
+                        <p style="color: #ef4444; margin: 5px 0 0 0; font-size: 0.9rem;">
+                            <i class="fas fa-exclamation-triangle"></i> Side Effects: {{ item.data.side_effects }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <p style="color: #6b7280; font-size: 0.9rem;">
+                    <i class="fas fa-user-md"></i> Prescribed by {{ item.data.doctor.username }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+        <i class="fas fa-folder-open" style="font-size: 4rem; margin-bottom: 20px;"></i>
+        <h3 style="color: #6b7280; margin-bottom: 10px;">No Medical Records Yet</h3>
+        <p>This patient's medical history will appear here once records are uploaded</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Medical Note Modal -->
+<div id="addRecordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+    <div style="max-width: 600px; margin: 50px auto; background: white; border-radius: 15px; padding: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="color: #0d9488; margin: 0;">Add Medical Note</h2>
+            <button onclick="document.getElementById('addRecordModal').style.display='none'"
+                    style="background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer;">
+                &times;
+            </button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('add_medical_note', patient_id=patient.id) }}">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">
+                    Record Type
+                </label>
+                <select name="record_type" id="recordType" required
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    <option value="">Select type...</option>
+                    <option value="test_result">Test Result</option>
+                    <option value="prescription">Prescription</option>
+                    <option value="procedure">Procedure</option>
+                </select>
+            </div>
+            
+            <!-- Test Result Fields -->
+            <div id="testFields" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Test Name</label>
+                    <input type="text" name="test_name" placeholder="e.g., CBC, X-ray"
+                           style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Test Type</label>
+                    <select name="test_type" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <option value="Blood Test">Blood Test</option>
+                        <option value="Imaging">Imaging</option>
+                        <option value="Biopsy">Biopsy</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Result</label>
+                    <textarea name="result_value" rows="3" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Normal Range</label>
+                    <input type="text" name="normal_range" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Interpretation</label>
+                    <textarea name="interpretation" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+            </div>
+            
+            <!-- Prescription Fields -->
+            <div id="prescriptionFields" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Medication Name</label>
+                    <input type="text" name="medication_name" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Dosage</label>
+                        <input type="text" name="dosage" placeholder="e.g., 500mg" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Frequency</label>
+                        <input type="text" name="frequency" placeholder="e.g., Twice daily" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Duration</label>
+                    <input type="text" name="duration" placeholder="e.g., 14 days" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Reason</label>
+                    <textarea name="reason" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Instructions</label>
+                    <textarea name="instructions" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+            </div>
+            
+            <!-- Procedure Fields -->
+            <div id="procedureFields" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Procedure Name</label>
+                    <input type="text" name="procedure_name" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Procedure Type</label>
+                    <select name="procedure_type" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <option value="Surgery">Surgery</option>
+                        <option value="Treatment">Treatment</option>
+                        <option value="Intervention">Intervention</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Description</label>
+                    <textarea name="description" rows="3" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Outcome</label>
+                    <textarea name="outcome" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;"></textarea>
+                </div>
+            </div>
+            
+            <!-- Chronic Condition Checkbox -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+                <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 10px;">
+                    <input type="checkbox" name="is_chronic_related" id="chronicCheckModal" value="1"
+                           style="width: 18px; height: 18px; margin-right: 10px;">
+                    <span style="font-weight: 500; color: #78350f;">Related to chronic condition</span>
+                </label>
+                <input type="text" name="chronic_condition" id="chronicConditionModal" placeholder="Specify chronic condition"
+                       style="width: 100%; padding: 10px; border: 2px solid #fbbf24; border-radius: 8px; display: none;">
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" style="flex: 1; background: #0d9488; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-save"></i> Save Record
+                </button>
+                <button type="button" onclick="document.getElementById('addRecordModal').style.display='none'"
+                        style="flex: 1; background: #f3f4f6; color: #374151; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Filter timeline
+function filterTimeline(type) {
+    const items = document.querySelectorAll('.timeline-item');
+    const buttons = document.querySelectorAll('.filter-btn');
+    
+    // Update button styles
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-filter') === type) {
+            btn.style.background = btn.style.borderColor;
+            btn.style.color = 'white';
+        } else {
+            btn.style.background = 'white';
+            btn.style.color = btn.style.borderColor;
+        }
+    });
+    
+    // Filter items
+    items.forEach(item => {
+        if (type === 'all') {
+            item.style.display = 'block';
+        } else if (type === 'chronic') {
+            item.style.display = item.getAttribute('data-chronic') === 'true' ? 'block' : 'none';
+        } else {
+            item.style.display = item.getAttribute('data-type') === type ? 'block' : 'none';
+        }
+    });
+}
+
+// Show/hide fields based on record type
+document.getElementById('recordType').addEventListener('change', function() {
+    document.getElementById('testFields').style.display = 'none';
+    document.getElementById('prescriptionFields').style.display = 'none';
+    document.getElementById('procedureFields').style.display = 'none';
+    
+    if (this.value === 'test_result') {
+        document.getElementById('testFields').style.display = 'block';
+    } else if (this.value === 'prescription') {
+        document.getElementById('prescriptionFields').style.display = 'block';
+    } else if (this.value === 'procedure') {
+        document.getElementById('procedureFields').style.display = 'block';
+    }
+});
+
+// Chronic condition field toggle
+document.getElementById('chronicCheckModal').addEventListener('change', function() {
+    document.getElementById('chronicConditionModal').style.display = this.checked ? 'block' : 'none';
+});
+</script>
+{% endblock %}

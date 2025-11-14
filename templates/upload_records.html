@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Upload Medical Records - E-Vura{% endblock %}
+
+{% block content %}
+<div style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h1 style="color: #0d9488; margin-bottom: 10px;">
+        <i class="fas fa-upload"></i> Upload Medical Records
+    </h1>
+    <p style="color: #666; margin-bottom: 30px;">Add test results, X-rays, lab reports, or other medical documents</p>
+    
+    <form method="POST" enctype="multipart/form-data" style="max-width: 800px;">
+        <!-- Upload Type Selection -->
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">
+                What are you uploading?
+            </label>
+            <select name="upload_type" id="uploadType" required
+                    style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;">
+                <option value="">Select upload type...</option>
+                <option value="file">Medical File (X-ray, MRI, Lab Report PDF)</option>
+                <option value="test">Test Result (Blood work, Imaging interpretation)</option>
+            </select>
+        </div>
+        
+        <!-- File Upload Section -->
+        <div id="fileUploadSection" style="display: none;">
+            <div style="background: #f0fdfa; padding: 20px; border-radius: 10px; border-left: 4px solid #0d9488; margin-bottom: 25px;">
+                <h3 style="color: #0d9488; margin-bottom: 15px;">Medical File Upload</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                        <i class="fas fa-file"></i> Select File
+                    </label>
+                    <input type="file" name="medical_file" accept=".pdf,.jpg,.jpeg,.png,.dcm"
+                           style="width: 100%; padding: 12px; border: 2px dashed #0d9488; border-radius: 8px; background: white;">
+                    <p style="color: #6b7280; font-size: 0.85rem; margin-top: 5px;">
+                        Accepted: PDF, JPG, PNG, DICOM (.dcm) - Max 16MB
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                            File Type
+                        </label>
+                        <select name="file_type" 
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                            <option value="X-ray">X-ray</option>
+                            <option value="MRI">MRI Scan</option>
+                            <option value="CT Scan">CT Scan</option>
+                            <option value="Ultrasound">Ultrasound</option>
+                            <option value="Lab Report">Lab Report</option>
+                            <option value="Biopsy Report">Biopsy Report</option>
+                            <option value="Prescription">Prescription</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                            Category
+                        </label>
+                        <select name="file_category"
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                            <option value="Imaging">Imaging (X-ray, MRI, CT)</option>
+                            <option value="Lab">Laboratory Test</option>
+                            <option value="Prescription">Prescription</option>
+                            <option value="Report">Medical Report</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Result Section -->
+        <div id="testResultSection" style="display: none;">
+            <div style="background: #eff6ff; padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
+                <h3 style="color: #3b82f6; margin-bottom: 15px;">Test Result Entry</h3>
+                
+                <input type="hidden" name="add_test_result" value="1">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                            Test Name
+                        </label>
+                        <input type="text" name="test_name" placeholder="e.g., Complete Blood Count (CBC)"
+                               style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                            Test Type
+                        </label>
+                        <select name="test_type"
+                                style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                            <option value="Blood Test">Blood Test</option>
+                            <option value="Imaging">Imaging</option>
+                            <option value="Biopsy">Biopsy</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                        Result Value
+                    </label>
+                    <textarea name="result_value" rows="3" placeholder="Enter test results..."
+                              style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                            Normal Range (optional)
+                        </label>
+                        <input type="text" name="normal_range" placeholder="e.g., 4,000-11,000 cells/μL"
+                               style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                        Interpretation (optional)
+                    </label>
+                    <textarea name="interpretation" rows="2" placeholder="Doctor's interpretation of results..."
+                              style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; resize: vertical;"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Common Fields for Both -->
+        <div id="commonFields" style="display: none;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                    <i class="fas fa-calendar"></i> Test/Procedure Date
+                </label>
+                <input type="date" name="test_date" required
+                       style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                    <i class="fas fa-hospital"></i> Hospital/Clinic Name
+                </label>
+                <input type="text" name="hospital_name" placeholder="e.g., Kigali University Teaching Hospital"
+                       style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                    Description
+                </label>
+                <textarea name="description" rows="3" placeholder="Additional notes or context..."
+                          style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+                    Diagnosis (if applicable)
+                </label>
+                <input type="text" name="diagnosis" placeholder="e.g., Chronic Osteomyelitis"
+                       style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
+            </div>
+            
+            <!-- Chronic Disease Tracking -->
+            <div style="background: #fef3c7; padding: 20px; border-radius: 10px; border-left: 4px solid #f59e0b; margin-bottom: 25px;">
+                <h3 style="color: #92400e; margin-bottom: 15px;">
+                    <i class="fas fa-exclamation-triangle"></i> Chronic Disease Tracking
+                </h3>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" name="is_chronic_related" id="chronicCheck" value="1"
+                               style="width: 20px; height: 20px; margin-right: 10px;">
+                        <span style="font-weight: 500; color: #78350f;">This is related to a chronic condition</span>
+                    </label>
+                </div>
+                
+                <div id="chronicConditionField" style="display: none;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #78350f;">
+                        Chronic Condition Name
+                    </label>
+                    <input type="text" name="chronic_condition" placeholder="e.g., Chronic Bone Infection, Diabetes, Hypertension"
+                           style="width: 100%; padding: 12px; border: 2px solid #fbbf24; border-radius: 8px; background: white;">
+                    <p style="color: #92400e; font-size: 0.85rem; margin-top: 8px;">
+                        <i class="fas fa-info-circle"></i> This helps doctors see all records related to your chronic condition
+                    </p>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button type="submit" 
+                        style="flex: 1; background: #0d9488; color: white; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-upload"></i> Upload Record
+                </button>
+                <a href="{{ url_for('medical_records') }}" 
+                   style="flex: 1; background: #f3f4f6; color: #374151; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Show/hide sections based on upload type
+document.getElementById('uploadType').addEventListener('change', function() {
+    const fileSection = document.getElementById('fileUploadSection');
+    const testSection = document.getElementById('testResultSection');
+    const commonFields = document.getElementById('commonFields');
+    
+    fileSection.style.display = 'none';
+    testSection.style.display = 'none';
+    commonFields.style.display = 'none';
+    
+    if (this.value === 'file') {
+        fileSection.style.display = 'block';
+        commonFields.style.display = 'block';
+    } else if (this.value === 'test') {
+        testSection.style.display = 'block';
+        commonFields.style.display = 'block';
+    }
+});
+
+// Show chronic condition field when checkbox is checked
+document.getElementById('chronicCheck').addEventListener('change', function() {
+    document.getElementById('chronicConditionField').style.display = 
+        this.checked ? 'block' : 'none';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard - E-Vura{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold;">
+            <i class="fas fa-user-md"></i>
+        </div>
+        <div>
+            <h1 style="font-size: 28px; margin-bottom: 5px;">Dr. {{ doctor.username }} Dashboard</h1>
+            <p style="color: #6b7280; font-size: 16px;">
+                <i class="fas fa-hospital"></i> {{ doctor.hospital or 'Private Practice' }} | 
+                <i class="fas fa-stethoscope"></i> {{ doctor.specialization or 'General Practice' }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #10b981;">
+        <div style="font-size: 36px; margin-bottom: 10px;">👥</div>
+        <div style="font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 5px;">
+            {% set unique_patients = [] %}
+            {% for apt in doctor.appointments %}
+                {% if apt.patient not in unique_patients %}
+                    {% set _ = unique_patients.append(apt.patient) %}
+                {% endif %}
+            {% endfor %}
+            {{ unique_patients|length }}
+        </div>
+        <div style="color: #6b7280; font-size: 14px;">Total Patients</div>
+    </div>
+    
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #3b82f6;">
+        <div style="font-size: 36px; margin-bottom: 10px;">📅</div>
+        <div style="font-size: 32px; font-weight: bold; color: #3b82f6; margin-bottom: 5px;">{{ doctor.appointments|length }}</div>
+        <div style="color: #6b7280; font-size: 14px;">All Appointments</div>
+    </div>
+    
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #f59e0b;">
+        <div style="font-size: 36px; margin-bottom: 10px;">⏳</div>
+        <div style="font-size: 32px; font-weight: bold; color: #f59e0b; margin-bottom: 5px;">
+            {{ doctor.appointments|selectattr('status', 'equalto', 'pending')|list|length }}
+        </div>
+        <div style="color: #6b7280; font-size: 14px;">Pending Requests</div>
+    </div>
+    
+    <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-left: 4px solid #0d9488;">
+        <div style="font-size: 36px; margin-bottom: 10px;">✅</div>
+        <div style="font-size: 32px; font-weight: bold; color: #0d9488; margin-bottom: 5px;">
+            {{ doctor.appointments|selectattr('status', 'equalto', 'completed')|list|length }}
+        </div>
+        <div style="color: #6b7280; font-size: 14px;">Completed</div>
+    </div>
+</div>
+
+<!-- Chronic Patients Alert -->
+{% set chronic_patients = [] %}
+{% for apt in doctor.appointments %}
+    {% if apt.patient.chronic_conditions and apt.patient not in chronic_patients %}
+        {% set _ = chronic_patients.append(apt.patient) %}
+    {% endif %}
+{% endfor %}
+{% if chronic_patients %}
+<div style="background: #fef3c7; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="color: #92400e; margin-bottom: 10px;">
+        <i class="fas fa-exclamation-triangle"></i> Chronic Patients Alert
+    </h3>
+    <p style="color: #78350f; margin-bottom: 10px; font-size: 16px;">
+        You have <strong>{{ chronic_patients|length }}</strong> patient(s) with chronic conditions in your care.
+    </p>
+    <p style="color: #92400e; margin: 0; font-size: 14px;">
+        <i class="fas fa-info-circle"></i> Always review their complete medical history before consultations to avoid duplicate tests and ensure continuity of care.
+    </p>
+</div>
+{% endif %}
+
+<!-- Recent Consultation Requests -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+        <h2><i class="fas fa-stethoscope"></i> Recent Consultation Requests</h2>
+        <a href="{{ url_for('consultations') }}" class="btn btn-primary">
+            <i class="fas fa-list"></i> View All Consultations
+        </a>
+    </div>
+    
+    {% if doctor.appointments %}
+        {% for apt in doctor.appointments|sort(attribute='created_at', reverse=True) %}
+            {% if loop.index <= 5 %}
+            <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; transition: all 0.3s ease; {% if apt.patient.chronic_conditions %}border-left: 4px solid #f59e0b; background: #fffbeb;{% endif %}">
+                <!-- Patient Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="margin-bottom: 5px; color: #111827; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-user-injured"></i> {{ apt.patient.username }}
+                            {% if apt.patient.chronic_conditions %}
+                                <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; border: 1px solid #fbbf24;">
+                                    <i class="fas fa-exclamation-triangle"></i> CHRONIC PATIENT
+                                </span>
+                            {% endif %}
+                        </h4>
+                        <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
+                            <i class="fas fa-envelope"></i> {{ apt.patient.email }}
+                        </div>
+                        {% if apt.patient.phone %}
+                        <div style="color: #6b7280; font-size: 14px; margin-top: 3px;">
+                            <i class="fas fa-phone"></i> {{ apt.patient.phone }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span style="padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; 
+                        {% if apt.status == 'confirmed' %}background: #10b981; color: white;
+                        {% elif apt.status == 'completed' %}background: #6b7280; color: white;
+                        {% elif apt.status == 'cancelled' %}background: #ef4444; color: white;
+                        {% else %}background: #f59e0b; color: white;{% endif %}">
+                        {{ apt.status|title }}
+                    </span>
+                </div>
+
+                <!-- Appointment Details -->
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: auto auto 1fr; gap: 15px; font-size: 14px; color: #4b5563;">
+                    <div>
+                        <i class="fas fa-calendar" style="color: #0d9488; margin-right: 8px;"></i>
+                        <strong>Date:</strong> {{ apt.date or 'Pending' }}
+                    </div>
+                    <div>
+                        <i class="fas fa-clock" style="color: #0d9488; margin-right: 8px;"></i>
+                        <strong>Time:</strong> {{ apt.time or 'Pending' }}
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <i class="fas fa-comment" style="color: #0d9488; margin-right: 8px;"></i>
+                        <strong>Reason:</strong> {{ apt.reason or 'General checkup' }}
+                    </div>
+                </div>
+
+                <!-- Chronic Conditions Alert -->
+                {% if apt.patient.chronic_conditions %}
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                    <h5 style="color: #92400e; margin-bottom: 8px; font-size: 14px; font-weight: 700;">
+                        <i class="fas fa-exclamation-triangle"></i> CHRONIC CONDITIONS ALERT
+                    </h5>
+                    <p style="color: #78350f; margin: 0; font-size: 14px; font-weight: 600;">{{ apt.patient.chronic_conditions }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Patient Medical History Preview -->
+                {% set total_records = (apt.patient.medical_files|length) + (apt.patient.test_results|length) + (apt.patient.procedures|length) + (apt.patient.prescriptions|length) %}
+                {% if total_records > 0 %}
+                <div style="background: #f0fdfa; border-left: 4px solid #10b981; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                    <h5 style="color: #065f46; margin-bottom: 10px; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-history"></i> Medical History Available ({{ total_records }} records)
+                    </h5>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
+                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #99f6e4;">
+                            <div style="font-weight: bold; color: #0d9488; font-size: 18px;">{{ apt.patient.medical_files|length }}</div>
+                            <div style="font-size: 11px; color: #666;">Files</div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #bfdbfe;">
+                            <div style="font-weight: bold; color: #3b82f6; font-size: 18px;">{{ apt.patient.test_results|length }}</div>
+                            <div style="font-size: 11px; color: #666;">Tests</div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #fecaca;">
+                            <div style="font-weight: bold; color: #ef4444; font-size: 18px;">{{ apt.patient.procedures|length }}</div>
+                            <div style="font-size: 11px; color: #666;">Procedures</div>
+                        </div>
+                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #fde68a;">
+                            <div style="font-weight: bold; color: #f59e0b; font-size: 18px;">{{ apt.patient.prescriptions|length }}</div>
+                            <div style="font-size: 11px; color: #666;">Prescriptions</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('view_patient_history', patient_id=apt.patient.id) }}" 
+                       style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600;">
+                        <i class="fas fa-eye"></i> View Complete Medical History
+                    </a>
+                </div>
+                {% else %}
+                <div style="background: #fef7f0; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                    <p style="color: #92400e; margin: 0; font-size: 13px; font-weight: 500;">
+                        <i class="fas fa-info-circle"></i> New patient - no previous medical history in E-Vura
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Patient Information Summary -->
+                <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 13px; color: #0c4a6e;">
+                        {% if apt.patient.blood_type %}
+                        <div><strong>Blood Type:</strong> {{ apt.patient.blood_type }}</div>
+                        {% endif %}
+                        {% if apt.patient.allergies %}
+                        <div><strong>Allergies:</strong> <span style="color: #dc2626; font-weight: 600;">{{ apt.patient.allergies }}</span></div>
+                        {% endif %}
+                        {% if apt.patient.emergency_contact %}
+                        <div><strong>Emergency:</strong> {{ apt.patient.emergency_contact }}</div>
+                        {% endif %}
+                        {% if apt.patient.date_of_birth %}
+                        <div><strong>DOB:</strong> {{ apt.patient.date_of_birth }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 15px;">
+                    {% if apt.status == 'pending' %}
+                        <div style="display: flex; gap: 10px;">
+                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                                <input type="hidden" name="status" value="confirmed">
+                                <button type="submit" class="btn btn-success" style="width: 100%;">
+                                    <i class="fas fa-check"></i> Accept Request
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                                <input type="hidden" name="status" value="cancelled">
+                                <button type="submit" class="btn btn-danger" style="width: 100%;">
+                                    <i class="fas fa-times"></i> Reject Request
+                                </button>
+                            </form>
+                        </div>
+                    {% elif apt.status == 'confirmed' %}
+                        <div style="display: flex; gap: 10px;">
+                            <a href="{{ url_for('view_patient_history', patient_id=apt.patient.id) }}" 
+                               class="btn btn-primary" style="flex: 1; text-decoration: none; text-align: center;">
+                                <i class="fas fa-history"></i> View Patient History
+                            </a>
+                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                                <input type="hidden" name="status" value="completed">
+                                <button type="submit" class="btn" style="width: 100%; background: #10b981; color: white;">
+                                    <i class="fas fa-check-double"></i> Mark as Completed
+                                </button>
+                            </form>
+                        </div>
+                    {% elif apt.status == 'completed' %}
+                        <div style="display: flex; justify-content: center;">
+                            <a href="{{ url_for('view_patient_history', patient_id=apt.patient.id) }}" 
+                               class="btn btn-secondary" style="text-decoration: none;">
+                                <i class="fas fa-history"></i> View Patient Medical History
+                            </a>
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; color: #6b7280; font-style: italic; padding: 10px;">
+                            <i class="fas fa-info-circle"></i> Consultation {{ apt.status }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+        
+        {% if doctor.appointments|length > 5 %}
+        <div style="text-align: center; padding: 20px;">
+            <a href="{{ url_for('consultations') }}" class="btn btn-primary">
+                <i class="fas fa-list"></i> View All {{ doctor.appointments|length }} Consultations
+            </a>
+        </div>
+        {% endif %}
+    {% else %}
+        <div style="text-align: center; padding: 60px; color: #9ca3af;">
+            <i class="fas fa-stethoscope" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+            <h3 style="margin-bottom: 10px; color: #4b5563;">No Consultation Requests</h3>
+            <p>You don't have any consultation requests at the moment.</p>
+            <p style="margin-top: 15px; font-size: 14px;">Patients can book appointments with you through the "Find Doctors" feature.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+    <a href="{{ url_for('consultations') }}" class="btn btn-primary" style="padding: 20px; text-align: center; text-decoration: none; display: block;">
+        <i class="fas fa-list" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        All Consultations
+    </a>
+    
+    <a href="{{ url_for('doctor_profile') }}" class="btn btn-secondary" style="padding: 20px; text-align: center; text-decoration: none; display: block;">
+        <i class="fas fa-user-md" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        My Profile
+    </a>
+    
+    {% if chronic_patients %}
+    <a href="{{ url_for('consultations') }}?filter=chronic" class="btn" style="padding: 20px; text-align: center; text-decoration: none; display: block; background: #f59e0b; color: white;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+        Chronic Patients
+    </a>
+    {% endif %}
+</div>
+
+<!-- Information Box -->
+<div style="background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-left: 4px solid #0d9488; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="color: #065f46; margin-bottom: 15px;">
+        <i class="fas fa-lightbulb"></i> Complete Patient Context at Your Fingertips
+    </h3>
+    <p style="color: #047857; line-height: 1.8; margin-bottom: 15px; font-size: 15px;">
+        E-Vura provides you with each patient's complete medical timeline, including <strong>chronic conditions</strong>, <strong>previous treatments</strong>, 
+        <strong>test results</strong>, and <strong>prescriptions from other doctors</strong>. This ensures you have full context for accurate diagnosis and treatment, 
+        even if it's the patient's first visit with you.
+    </p>
+    <div style="border-top: 1px solid #99f6e4; padding-top: 15px; margin-top: 15px;">
+        <p style="color: #065f46; margin: 0; font-size: 14px;">
+            <i class="fas fa-check-circle" style="color: #10b981;"></i> <strong>No more starting from scratch</strong> - Deliver better patient care with complete medical history<br>
+            <i class="fas fa-ban" style="color: #ef4444; margin-top: 8px; display: inline-block;"></i> <strong>Prevent duplicate tests</strong> - Save time and money by reviewing existing results<br>
+            <i class="fas fa-shield-alt" style="color: #3b82f6; margin-top: 8px; display: inline-block;"></i> <strong>Continuity of care</strong> - Build on previous treatments for better outcomes
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh every 5 minutes to check for new appointments
+    setTimeout(function() {
+        location.reload();
+    }, 300000); // 5 minutes
+
+    // Highlight chronic patient cards
+    document.addEventListener('DOMContentLoaded', function() {
+        const chronicCards = document.querySelectorAll('[style*="border-left: 4px solid #f59e0b"]');
+        chronicCards.forEach(card => {
+            card.style.transition = 'all 0.3s ease';
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 8px 20px rgba(245, 158, 11, 0.3)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}

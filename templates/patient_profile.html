@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - E-Vura{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div style="background: white; border-radius: 15px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
+    <div style="width: 120px; height: 120px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; font-weight: bold; margin: 0 auto 20px;">
+        {{ patient.username[0]|upper }}
+    </div>
+    <h1 style="font-size: 28px; margin-bottom: 10px;">{{ patient.username }}'s Profile</h1>
+    <p style="color: #6b7280;">Manage your personal and medical information</p>
+</div>
+
+<!-- Chronic Conditions Alert -->
+{% if patient.chronic_conditions %}
+<div style="background: #fef7f0; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+    <h3 style="color: #92400e; margin-bottom: 15px;">
+        <i class="fas fa-exclamation-triangle"></i> Active Chronic Conditions
+    </h3>
+    <p style="color: #78350f; margin-bottom: 15px; font-size: 16px; font-weight: 600; background: white; padding: 15px; border-radius: 8px;">{{ patient.chronic_conditions }}</p>
+    <p style="color: #92400e; margin: 0; font-size: 14px;">
+        <i class="fas fa-info-circle"></i> This information is automatically shared with all your doctors to ensure continuity of care and prevent repeated diagnoses.
+    </p>
+</div>
+{% endif %}
+
+<!-- Profile Form -->
+<form method="POST" action="{{ url_for('patient_profile') }}">
+    <!-- Basic Information -->
+    <div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+            <i class="fas fa-user"></i> Basic Information
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" value="{{ patient.username }}" disabled style="background: #f9fafb; color: #6b7280;">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" value="{{ patient.email }}" disabled style="background: #f9fafb; color: #6b7280;">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-phone"></i> Phone Number</label>
+                <input type="tel" name="phone" value="{{ patient.phone or '' }}" placeholder="+250 XXX XXX XXX">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-calendar"></i> Date of Birth</label>
+                <input type="date" name="date_of_birth" value="{{ patient.date_of_birth or '' }}">
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label><i class="fas fa-map-marker-alt"></i> Address</label>
+                <input type="text" name="address" value="{{ patient.address or '' }}" placeholder="City, District, Rwanda">
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Information -->
+    <div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+            <i class="fas fa-heartbeat"></i> Medical Information
+        </h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label><i class="fas fa-tint"></i> Blood Type</label>
+                <select name="blood_type">
+                    <option value="">Select blood type</option>
+                    <option value="A+" {% if patient.blood_type == 'A+' %}selected{% endif %}>A+</option>
+                    <option value="A-" {% if patient.blood_type == 'A-' %}selected{% endif %}>A-</option>
+                    <option value="B+" {% if patient.blood_type == 'B+' %}selected{% endif %}>B+</option>
+                    <option value="B-" {% if patient.blood_type == 'B-' %}selected{% endif %}>B-</option>
+                    <option value="AB+" {% if patient.blood_type == 'AB+' %}selected{% endif %}>AB+</option>
+                    <option value="AB-" {% if patient.blood_type == 'AB-' %}selected{% endif %}>AB-</option>
+                    <option value="O+" {% if patient.blood_type == 'O+' %}selected{% endif %}>O+</option>
+                    <option value="O-" {% if patient.blood_type == 'O-' %}selected{% endif %}>O-</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-phone-alt"></i> Emergency Contact</label>
+                <input type="tel" name="emergency_contact" value="{{ patient.emergency_contact or '' }}" placeholder="+250 XXX XXX XXX">
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label><i class="fas fa-allergies"></i> Allergies</label>
+                <textarea name="allergies" rows="2" placeholder="List any allergies (e.g., penicillin, peanuts, shellfish)">{{ patient.allergies or '' }}</textarea>
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label style="color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i> Chronic Conditions</label>
+                <textarea name="chronic_conditions" rows="3" placeholder="List any chronic conditions (e.g., diabetes, hypertension, chronic bone infection)" style="border-color: #f59e0b; border-width: 2px;">{{ patient.chronic_conditions or '' }}</textarea>
+                <small style="color: #92400e; font-style: italic; display: block; margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i> This critical information helps ensure continuity of care when changing doctors or hospitals. It prevents repeated diagnoses and ensures appropriate treatment.
+                </small>
+            </div>
+        </div>
+
+        <div style="background: #f0fdfa; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <p style="color: #065f46; font-size: 14px; margin: 0;">
+                <i class="fas fa-shield-alt"></i> <strong>Your medical information is secure:</strong> Only healthcare providers treating you can access this information through E-Vura's encrypted platform.
+            </p>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 15px; font-size: 16px;">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+        <a href="{{ url_for('patient_dashboard') }}" class="btn btn-secondary" style="padding: 15px; font-size: 16px;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</form>
+
+<!-- Complete Medical History -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+        <i class="fas fa-file-medical"></i> Complete Medical History
+    </h3>
+    <p style="color: #6b7280; margin-bottom: 25px;">Your complete health journey - always accessible to your doctors</p>
+    
+    {% if records %}
+        {% for record in records %}
+            <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; transition: box-shadow 0.3s ease; hover: box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="color: #0d9488; margin-bottom: 5px;">Dr. {{ record.doctor.username }}</h4>
+                        <div style="color: #6b7280; font-size: 14px;">
+                            {{ record.doctor.specialization or 'General Practice' }}
+                            {% if record.doctor.hospital %} - {{ record.doctor.hospital }}{% endif %}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: #111827; font-weight: 600;">{{ record.visit_date }}</div>
+                        {% if record.follow_up_required %}
+                        <div style="color: #ef4444; font-size: 12px; font-weight: 600; margin-top: 5px;">
+                            <i class="fas fa-flag"></i> Follow-up Required
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: #374151; margin-right: 10px;">Diagnosis:</strong>
+                        <span style="color: #4b5563;">{{ record.diagnosis }}</span>
+                    </div>
+                    
+                    {% if record.treatment %}
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: #374151; margin-right: 10px;">Treatment:</strong>
+                        <span style="color: #4b5563;">{{ record.treatment }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.prescription %}
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: #374151; margin-right: 10px;">Prescription:</strong>
+                        <span style="color: #4b5563;">{{ record.prescription }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if record.notes %}
+                    <div style="margin-bottom: 0;">
+                        <strong style="color: #374151; margin-right: 10px;">Notes:</strong>
+                        <span style="color: #4b5563;">{{ record.notes }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 60px; color: #9ca3af;">
+            <i class="fas fa-file-medical" style="font-size: 48px; margin-bottom: 15px;"></i>
+            <h4>No Medical Records Yet</h4>
+            <p style="margin-bottom: 20px;">Your medical records will appear here after your first consultation.</p>
+            <a href="{{ url_for('find_doctors') }}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Find a Doctor
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Timeline Information -->
+<div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 10px;">
+    <h4 style="color: #0c4a6e; margin-bottom: 15px;"><i class="fas fa-timeline"></i> Why Your Medical History Matters</h4>
+    <p style="color: #075985; margin: 0; line-height: 1.6;">
+        E-Vura maintains your complete medical timeline. Whether you visit the same doctor in 2025 after seeing them in 2012, 
+        or switch to a completely different hospital, your <strong>chronic conditions</strong>, <strong>past treatments</strong>, 
+        and <strong>medical history</strong> are always accessible. This prevents repeated tests, reduces healthcare costs, 
+        and ensures continuity of care throughout your health journey.
+    </p>
+</div>
+{% endblock %}

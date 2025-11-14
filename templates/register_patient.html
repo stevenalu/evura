@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Registration - E-Vura{% endblock %}
+
+{% block content1 %}
+<div class="card">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: #10b981; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <h2 style="color: #10b981; margin-bottom: 10px;">Join as Patient</h2>
+        <p style="color: #6b7280;">Create your E-Vura account and take control of your health journey</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('register_patient') }}">
+        <div class="form-group">
+            <label><i class="fas fa-user"></i> Full Name</label>
+            <input type="text" name="username" required placeholder="Enter your full name" minlength="3">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fas fa-envelope"></i> Email Address</label>
+            <input type="email" name="email" required placeholder="your.email@example.com">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fas fa-lock"></i> Password</label>
+            <input type="password" name="password" required placeholder="Create a secure password" minlength="6">
+        </div>
+
+        <div style="background: #f0fdfa; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+            <h4 style="color: #065f46; margin-bottom: 10px;"><i class="fas fa-shield-alt"></i> Why Register with E-Vura?</h4>
+            <ul style="color: #047857; margin: 0; padding-left: 20px; line-height: 1.6;">
+                <li><strong>Chronic Disease Management:</strong> Your conditions are tracked across all doctor visits</li>
+                <li><strong>Complete Medical History:</strong> Never lose your health records again</li>
+                <li><strong>Easy Doctor Access:</strong> Find and book appointments instantly</li>
+                <li><strong>Secure & Private:</strong> Your data is protected with industry-standard encryption</li>
+            </ul>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 30px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" required style="width: auto;">
+                <span style="color: #6b7280; font-size: 14px;">
+                    I agree to the <a href="#" style="color: #0d9488;">Terms of Service</a> and <a href="#" style="color: #0d9488;">Privacy Policy</a>
+                </span>
+            </label>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 30px;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;">
+                <i class="fas fa-user-check"></i> Create Patient Account
+            </button>
+        </div>
+    </form>
+
+    <div style="text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+        <p style="color: #6b7280; margin-bottom: 10px;">Already have an account?</p>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+        </a>
+        <div style="margin-top: 15px;">
+            <a href="{{ url_for('register_doctor') }}" style="color: #0d9488; text-decoration: none;">
+                Are you a doctor? Register here
+            </a>
+        </div>
+        <a href="{{ url_for('index') }}" style="color: #6b7280; text-decoration: none; margin-top: 10px; display: inline-block; font-size: 14px;">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

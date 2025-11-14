@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Dr. {{ doctor.username }} - E-Vura{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div style="background: white; border-radius: 15px; padding: 30px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+    <div style="width: 120px; height: 120px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; color: white; flex-shrink: 0;">
+        {{ doctor.username[0]|upper }}
+    </div>
+    
+    <div style="flex: 1;">
+        <h1 style="font-size: 32px; color: #111827; margin-bottom: 10px;">Dr. {{ doctor.username }}</h1>
+        <div style="color: #0d9488; font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+            {{ doctor.specialization or 'General Practice' }}
+        </div>
+        <div style="color: #6b7280; font-size: 16px; margin-bottom: 20px;">
+            <i class="fas fa-hospital"></i> {{ doctor.hospital or 'Private Practice' }}
+        </div>
+        {% if doctor.license_number %}
+        <div style="color: #6b7280; font-size: 14px;">
+            <i class="fas fa-certificate"></i> License: {{ doctor.license_number }}
+        </div>
+        {% endif %}
+    </div>
+    
+    <div style="flex-shrink: 0;">
+        <button onclick="showBookingModal()" class="btn btn-primary" style="padding: 15px 30px; font-size: 18px;">
+            <i class="fas fa-calendar-plus"></i> Book Appointment
+        </button>
+    </div>
+</div>
+
+<!-- Doctor Statistics -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="margin-bottom: 20px; color: #111827; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+        <i class="fas fa-chart-bar"></i> Professional Statistics
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: #f0fdfa; border-radius: 10px; border-left: 4px solid #10b981;">
+            <div style="font-size: 28px; font-weight: bold; color: #10b981; margin-bottom: 5px;">{{ total_patients }}</div>
+            <div style="color: #065f46; font-size: 14px;">Total Patients</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: #eff6ff; border-radius: 10px; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 28px; font-weight: bold; color: #3b82f6; margin-bottom: 5px;">{{ total_appointments }}</div>
+            <div style="color: #1e40af; font-size: 14px;">Total Appointments</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: #f0f9ff; border-radius: 10px; border-left: 4px solid #0d9488;">
+            <div style="font-size: 28px; font-weight: bold; color: #0d9488; margin-bottom: 5px;">{{ completed_appointments }}</div>
+            <div style="color: #0f766e; font-size: 14px;">Completed Consultations</div>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <div style="font-size: 28px; font-weight: bold; color: #f59e0b; margin-bottom: 5px;">{{ doctor.years_experience or 0 }}</div>
+            <div style="color: #92400e; font-size: 14px;">Years Experience</div>
+        </div>
+    </div>
+</div>
+
+<!-- Professional Information -->
+<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
+        <i class="fas fa-info-circle"></i> Professional Information
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div style="display: flex; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #0d9488;">
+            <i class="fas fa-stethoscope" style="width: 20px; color: #0d9488; margin-right: 15px; font-size: 16px;"></i>
+            <div>
+                <h4 style="color: #374151; margin-bottom: 3px; font-size: 14px; font-weight: 600;">Specialization</h4>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">{{ doctor.specialization or 'General Practice' }}</p>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #0d9488;">
+            <i class="fas fa-hospital" style="width: 20px; color: #0d9488; margin-right: 15px; font-size: 16px;"></i>
+            <div>
+                <h4 style="color: #374151; margin-bottom: 3px; font-size: 14px; font-weight: 600;">Hospital/Clinic</h4>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">{{ doctor.hospital or 'Private Practice' }}</p>
+            </div>
+        </div>
+        
+        {% if doctor.years_experience %}
+        <div style="display: flex; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #0d9488;">
+            <i class="fas fa-calendar" style="width: 20px; color: #0d9488; margin-right: 15px; font-size: 16px;"></i>
+            <div>
+                <h4 style="color: #374151; margin-bottom: 3px; font-size: 14px; font-weight: 600;">Experience</h4>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">{{ doctor.years_experience }} years in practice</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if doctor.phone %}
+        <div style="display: flex; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #0d9488;">
+            <i class="fas fa-phone" style="width: 20px; color: #0d9488; margin-right: 15px; font-size: 16px;"></i>
+            <div>
+                <h4 style="color: #374151; margin-bottom: 3px; font-size: 14px; font-weight: 600;">Phone</h4>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">{{ doctor.phone }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if doctor.license_number %}
+        <div style="display: flex; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #0d9488;">
+            <i class="fas fa-certificate" style="width: 20px; color: #0d9488; margin-right: 15px; font-size: 16px;"></i>
+            <div>
+                <h4 style="color: #374151; margin-bottom: 3px; font-size: 14px; font-weight: 600;">License Number</h4>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">{{ doctor.license_number }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; border-left: 3px solid #0d9488;">
+            <i class="fas fa-envelope" style="width: 20px; color: #0d9488; margin-right: 15px; font-size: 16px;"></i>
+            <div>
+                <h4 style="color: #374151; margin-bottom: 3px; font-size: 14px; font-weight: 600;">Email</h4>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">Available upon appointment confirmation</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Book Appointment Section -->
+<div style="background: linear-gradient(135deg, #0d9488, #14b8a6); color: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; text-align: center;">
+    <h3 style="color: white; margin-bottom: 15px;">
+        <i class="fas fa-clock"></i> Book Your Appointment
+    </h3>
+    <p style="margin-bottom: 20px; opacity: 0.9; font-size: 16px;">
+        Schedule a consultation with Dr. {{ doctor.username }} to discuss your health concerns and receive professional medical advice.
+    </p>
+    <button onclick="showBookingModal()" style="background: white; color: #0d9488; border: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 16px; hover: box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <i class="fas fa-calendar-plus"></i> Schedule Appointment Now
+    </button>
+</div>
+
+<!-- Navigation Actions -->
+<div style="display: flex; gap: 15px; margin-bottom: 30px;">
+    <a href="{{ url_for('find_doctors') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Doctors
+    </a>
+    <a href="{{ url_for('patient_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-tachometer-alt"></i> My Dashboard
+    </a>
+</div>
+
+<!-- Information Box -->
+<div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 20px; border-radius: 10px;">
+    <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> Complete Medical Context</h4>
+    <p style="color: #047857; line-height: 1.6; margin: 0;">
+        Dr. {{ doctor.username }} will have access to your complete medical history through E-Vura, including any chronic conditions 
+        and past treatments. This ensures informed medical decisions from your very first consultation, without the need to repeat your health history.
+    </p>
+</div>
+
+<!-- Booking Modal -->
+<div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 20px; color: #0d9488;">
+            <i class="fas fa-calendar-plus"></i> Book Appointment with Dr. {{ doctor.username }}
+        </h3>
+        
+        <form method="POST" action="{{ url_for('book_appointment') }}">
+            <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+            
+            <div class="form-group">
+                <label><i class="fas fa-calendar"></i> Preferred Date</label>
+                <input type="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-clock"></i> Preferred Time</label>
+                <select name="time" required>
+                    <option value="">Select time...</option>
+                    <option value="08:00">8:00 AM</option>
+                    <option value="08:30">8:30 AM</option>
+                    <option value="09:00">9:00 AM</option>
+                    <option value="09:30">9:30 AM</option>
+                    <option value="10:00">10:00 AM</option>
+                    <option value="10:30">10:30 AM</option>
+                    <option value="11:00">11:00 AM</option>
+                    <option value="11:30">11:30 AM</option>
+                    <option value="14:00">2:00 PM</option>
+                    <option value="14:30">2:30 PM</option>
+                    <option value="15:00">3:00 PM</option>
+                    <option value="15:30">3:30 PM</option>
+                    <option value="16:00">4:00 PM</option>
+                    <option value="16:30">4:30 PM</option>
+                    <option value="17:00">5:00 PM</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-comment"></i> Reason for Visit</label>
+                <textarea name="reason" rows="3" placeholder="Please describe your health concern or reason for the visit..."></textarea>
+            </div>
+
+            <div style="background: #f0fdfa; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981; margin-bottom: 20px;">
+                <p style="color: #065f46; font-size: 14px; margin: 0;">
+                    <i class="fas fa-info-circle"></i> Your appointment request will be sent to Dr. {{ doctor.username }} for approval. You'll receive an email confirmation once reviewed.
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-paper-plane"></i> Send Request
+                </button>
+                <button type="button" onclick="hideBookingModal()" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showBookingModal() {
+        document.getElementById('bookingModal').style.display = 'flex';
+    }
+
+    function hideBookingModal() {
+        document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    // Close modal on outside click
+    document.getElementById('bookingModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideBookingModal();
+        }
+    });
+</script>
+{% endblock %}
