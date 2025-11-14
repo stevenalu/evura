@@ -996,13 +996,33 @@ def add_medical_record(appointment_id):
     
     return redirect(url_for('consultations'))
 
-with app.app_context():
-    database_checking = db.create_all()
-    if database_checking:
-        print('database is created sucessfully!')
-    else:
-        print('Error creating database')
+print(f"🔍 DATABASE_URL exists: {bool(os.environ.get('DATABASE_URL'))}")
 
+print(f"🔍 Final DB URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+
+# Create database tables on startup
+
+with app.app_context():
+
+    try:
+
+        print("🔄 Attempting to connect to database...")
+
+        db.create_all()
+
+        print('✅ E-Vura Database tables created successfully!')
+
+    except Exception as e:
+
+        print(f' Error creating database: {e}')
+
+        print(f'❌ Error details: {str(e)}')
+
+        print(f'❌ Error type: {type(e).__name__}')
+
+        import traceback
+
+        print(f'❌ Full traceback: {traceback.format_exc()}')
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
