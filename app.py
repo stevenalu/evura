@@ -1,14 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_mail import Mail, Message
 from datetime import datetime
 from functools import wraps
 import os
 from werkzeug.utils import secure_filename
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 
 app = Flask(__name__)
+app.config['SENDGRID_API_KEY'] = os.environ.get('SENDGRID_API_KEY')
 app.config['SECRET_KEY'] = 'evuraqwertysecretkey'
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///evura.db')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
@@ -17,16 +19,8 @@ if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 's.kayitare@alustudent.com'
-app.config['MAIL_PASSWORD'] = 'hexl sywn trin yxdo'
-app.config['MAIL_DEFAULT_SENDER'] = 's.kayitare@alustudent.com'
-
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
-mail = Mail(app)
 
 # File upload configuration
 UPLOAD_FOLDER = 'uploads'
@@ -225,19 +219,27 @@ class MedicalRecord(db.Model):
 
 def send_email(to, subject, template_name, **kwargs):
     try:
-        msg = Message(
-            subject=f"E-Vura(QWERTY Team): {subject}",
-            recipients=[to],
-            html=render_email_template(template_name, **kwargs),
-            sender=app.config['MAIL_DEFAULT_SENDER']
+        # Create email content
+        html_content = render_email_template(template_name, **kwargs)
+        
+        # Create SendGrid message
+        message = Mail(
+            from_email='s.kayitare@alustudent.com',
+            to_emails=to,
+            subject=f"E-Vura Healthcare: {subject}",
+            html_content=html_content
         )
-        mail.send(msg)
-        print(f"Email sent to {to}: {subject}")
+        
+        # Send via SendGrid
+        sg = SendGridAPIClient(api_key=app.config['SENDGRID_API_KEY'])
+        response = sg.send(message)
+        print(f"✅ Email sent to {to}: {subject} (Status: {response.status_code})")
         return True
+        
     except Exception as e:
-        print(f"Email failed to {to}: {e}")
+        print(f"❌ Email failed to {to}: {e}")
         return False
-
+    
 def render_email_template(template_name, **kwargs):
     """Email templates with alerts"""
     base_style = """
