@@ -10,6 +10,14 @@ from sendgrid.helpers.mail import Mail
 
 
 app = Flask(__name__)
+print(f" SENDGRID_API_KEY in environment: {bool(os.environ.get('SENDGRID_API_KEY'))}")
+if os.environ.get('SENDGRID_API_KEY'):
+    key = os.environ.get('SENDGRID_API_KEY')
+    print(f" API Key starts with: {key[:10]}...")
+    print(f" API Key length: {len(key)}")
+else:
+    print("SENDGRID_API_KEY not found in environment variables!")
+
 app.config['SENDGRID_API_KEY'] = os.environ.get('SENDGRID_API_KEY')
 app.config['SECRET_KEY'] = 'evuraqwertysecretkey'
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///evura.db')
@@ -219,8 +227,18 @@ class MedicalRecord(db.Model):
 
 def send_email(to, subject, template_name, **kwargs):
     try:
+        print(f"🔍 Starting email send to: {to}")
+        print(f"🔍 SendGrid API Key exists: {bool(app.config.get('SENDGRID_API_KEY'))}")
+        print(f"🔍 API Key length: {len(app.config.get('SENDGRID_API_KEY', ''))}")
+        
+        # Check if SendGrid is configured
+        if not app.config.get('SENDGRID_API_KEY'):
+            print("❌ SENDGRID_API_KEY not found in environment!")
+            return False
+            
         # Create email content
         html_content = render_email_template(template_name, **kwargs)
+        print(f"🔍 Email content generated successfully")
         
         # Create SendGrid message
         message = Mail(
@@ -229,17 +247,24 @@ def send_email(to, subject, template_name, **kwargs):
             subject=f"E-Vura Healthcare: {subject}",
             html_content=html_content
         )
+        print(f"🔍 SendGrid message created")
         
         # Send via SendGrid
         sg = SendGridAPIClient(api_key=app.config['SENDGRID_API_KEY'])
+        print(f"🔍 SendGrid client initialized")
+        
         response = sg.send(message)
         print(f"✅ Email sent to {to}: {subject} (Status: {response.status_code})")
+        print(f"✅ Response body: {response.body}")
         return True
         
     except Exception as e:
         print(f"❌ Email failed to {to}: {e}")
+        print(f"❌ Error type: {type(e).__name__}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
         return False
-    
+        
 def render_email_template(template_name, **kwargs):
     """Email templates with alerts"""
     base_style = """
