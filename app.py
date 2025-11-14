@@ -233,7 +233,7 @@ def send_email(to, subject, template_name, **kwargs):
         
         # Check if SendGrid is configured
         if not app.config.get('SENDGRID_API_KEY'):
-            print("❌ SENDGRID_API_KEY not found in environment!")
+            print(" SENDGRID_API_KEY not found in environment!")
             return False
             
         # Create email content
@@ -247,22 +247,22 @@ def send_email(to, subject, template_name, **kwargs):
             subject=f"E-Vura Healthcare: {subject}",
             html_content=html_content
         )
-        print(f"🔍 SendGrid message created")
+        print(f" SendGrid message created")
         
         # Send via SendGrid
         sg = SendGridAPIClient(api_key=app.config['SENDGRID_API_KEY'])
-        print(f"🔍 SendGrid client initialized")
+        print(f" SendGrid client initialized")
         
         response = sg.send(message)
-        print(f"✅ Email sent to {to}: {subject} (Status: {response.status_code})")
-        print(f"✅ Response body: {response.body}")
+        print(f"Email sent to {to}: {subject} (Status: {response.status_code})")
+        print(f"Response body: {response.body}")
         return True
         
     except Exception as e:
-        print(f"❌ Email failed to {to}: {e}")
-        print(f"❌ Error type: {type(e).__name__}")
+        print(f" Email failed to {to}: {e}")
+        print(f" Error type: {type(e).__name__}")
         import traceback
-        print(f"❌ Full traceback: {traceback.format_exc()}")
+        print(f" Full traceback: {traceback.format_exc()}")
         return False
         
 def render_email_template(template_name, **kwargs):
@@ -1033,23 +1033,23 @@ with app.app_context():
 
     try:
 
-        print("🔄 Attempting to connect to database...")
+        print(" Attempting to connect to database...")
 
         db.create_all()
 
-        print('✅ E-Vura Database tables created successfully!')
+        print(' E-Vura Database tables created successfully!')
 
     except Exception as e:
 
         print(f' Error creating database: {e}')
 
-        print(f'❌ Error details: {str(e)}')
+        print(f' Error details: {str(e)}')
 
-        print(f'❌ Error type: {type(e).__name__}')
+        print(f' Error type: {type(e).__name__}')
 
         import traceback
 
-        print(f'❌ Full traceback: {traceback.format_exc()}')
+        print(f' Full traceback: {traceback.format_exc()}')
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
