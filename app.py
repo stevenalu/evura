@@ -996,13 +996,13 @@ def add_medical_record(appointment_id):
     
     return redirect(url_for('consultations'))
 
-if __name__ == '__main__':
-    with app.app_context():
-        database_checking = db.create_all()
-        if database_checking:
-            print('database is created sucessfully!')
-        else:
-            print('Error creating database')
+with app.app_context():
+    database_checking = db.create_all()
+    if database_checking:
+        print('database is created sucessfully!')
+    else:
+        print('Error creating database')
 
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
