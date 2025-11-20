@@ -1170,6 +1170,24 @@ print(f" DATABASE_URL exists: {bool(os.environ.get('DATABASE_URL'))}")
 
 print(f" Final DB URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
+@app.route('/reset-db')
+def reset_database():
+    """Clear all database tables and recreate them"""
+    try:
+        db.drop_all()
+        db.create_all()
+        return """
+        <h2 style="color: green;">✅ Database Reset Complete!</h2>
+        <p>All tables have been dropped and recreated with the new schema.</p>
+        <ul>
+            <li>✅ All old data deleted</li>
+            <li>✅ New tables created with DoctorAvailability</li>
+            <li>✅ Ready for testing</li>
+        </ul>
+        <a href="/">← Back to E-Vura</a>
+        """
+    except Exception as e:
+        return f"<h2 style='color: red;'>❌ Error:</h2><p>{e}</p><a href='/'>← Back</a>"
 # Create database tables on startup
 
 with app.app_context():
