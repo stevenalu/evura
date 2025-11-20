@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment - E-Vura{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Book Appointment</h1>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h2 class="text-xl font-bold text-teal-400 mb-2">Dr. {{ doctor.username }}</h2>
+                <p class="text-gray-300">{{ doctor.specialization or "General Practice" }}</p>
+                <p class="text-gray-400">{{ doctor.hospital or "Hospital TBD" }}</p>
+            </div>
+        </div>
+
+        <!-- Available Dates & Times -->
+        {% for date_info in dates %}
+            {% if date_info.slots %}
+            <div class="bg-gray-800 rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-bold text-white mb-4">{{ date_info.display }}</h3>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
+                    {% for slot in date_info.slots %}
+                    <form action="{{ url_for('book_appointment') }}" method="POST" style="display: inline;">
+                        <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+                        <input type="hidden" name="date" value="{{ date_info.date }}">
+                        <input type="hidden" name="time" value="{{ slot }}">
+                        <button type="submit" class="w-full bg-teal-600 text-white px-3 py-2 rounded-md hover:bg-teal-700 text-sm">
+                            {{ slot }}
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- No Availability Message -->
+        {% if not dates or not dates|selectattr('slots')|list %}
+        <div class="bg-gray-800 rounded-lg p-8 text-center">
+            <div class="text-6xl mb-4">📅</div>
+            <h3 class="text-xl font-bold text-white mb-2">No Available Slots</h3>
+            <p class="text-gray-400 mb-4">Dr. {{ doctor.username }} has not set any available time slots yet.</p>
+            <a href="{{ url_for('find_doctors') }}" class="bg-teal-600 text-white px-6 py-2 rounded-md hover:bg-teal-700">
+                Find Other Doctors
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

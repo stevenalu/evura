@@ -223,13 +223,30 @@ class MedicalRecord(db.Model):
     follow_up_required = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class DoctorAvailability(db.Model):
+    """Doctor availability slots"""
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
+    day_of_week = db.Column(db.String(10), nullable=False)  
+    start_time = db.Column(db.String(10), nullable=False)   
+    end_time = db.Column(db.String(10), nullable=False)      
+    slot_duration = db.Column(db.Integer, default=30)       
+    
+    is_active = db.Column(db.Boolean, default=True)
+    notes = db.Column(db.String(200))
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    doctor = db.relationship('Doctor', backref='availability_slots')
+
 # EMAIL FUNCTIONS
 
 def send_email(to, subject, template_name, **kwargs):
     try:
-        print(f"🔍 Starting email send to: {to}")
-        print(f"🔍 SendGrid API Key exists: {bool(app.config.get('SENDGRID_API_KEY'))}")
-        print(f"🔍 API Key length: {len(app.config.get('SENDGRID_API_KEY', ''))}")
+        print(f" Starting email send to: {to}")
+        print(f" SendGrid API Key exists: {bool(app.config.get('SENDGRID_API_KEY'))}")
+        print(f" API Key length: {len(app.config.get('SENDGRID_API_KEY', ''))}")
         
         # Check if SendGrid is configured
         if not app.config.get('SENDGRID_API_KEY'):
@@ -238,7 +255,7 @@ def send_email(to, subject, template_name, **kwargs):
             
         # Create email content
         html_content = render_email_template(template_name, **kwargs)
-        print(f"🔍 Email content generated successfully")
+        print(f" Email content generated successfully")
         
         # Create SendGrid message
         message = Mail(
@@ -385,6 +402,52 @@ def render_email_template(template_name, **kwargs):
     
     content = templates.get(template_name, f"<p>E-Vura Healthcare Platform notification</p>")
     return base_style.format(content=content)
+
+def generate_time_slots(start_time, end_time, duration=30):
+    """Generate time slots between start and end time"""
+    from datetime import datetime, timedelta
+    
+    slots = []
+    start = datetime.strptime(start_time, '%H:%M')
+    end = datetime.strptime(end_time, '%H:%M')
+    
+    current = start
+    while current + timedelta(minutes=duration) <= end:
+        slots.append(current.strftime('%H:%M'))
+        current += timedelta(minutes=duration)
+    
+    return slots
+
+def get_available_slots_for_doctor(doctor_id, target_date):
+    """Get available time slots for a doctor on a specific date"""
+    from datetime import datetime
+    
+    # Get day of week
+    date_obj = datetime.strptime(target_date, '%Y-%m-%d')
+    day_name = date_obj.strftime('%A')
+    
+    # Get doctor's availability for this day
+    availability = DoctorAvailability.query.filter_by(
+        doctor_id=doctor_id, 
+        day_of_week=day_name, 
+        is_active=True
+    ).all()
+    
+    all_slots = []
+    for avail in availability:
+        slots = generate_time_slots(avail.start_time, avail.end_time, avail.slot_duration)
+        all_slots.extend(slots)
+    
+    # Remove booked slots
+    booked_slots = Appointment.query.filter_by(
+        doctor_id=doctor_id,
+        date=target_date
+    ).filter(Appointment.status.in_(['pending', 'confirmed'])).all()
+    
+    booked_times = [apt.time for apt in booked_slots]
+    available_slots = [slot for slot in all_slots if slot not in booked_times]
+    
+    return sorted(available_slots)
 
 # HELPER FUNCTIONS
 
@@ -1023,9 +1086,89 @@ def add_medical_record(appointment_id):
     
     return redirect(url_for('consultations'))
 
-print(f"🔍 DATABASE_URL exists: {bool(os.environ.get('DATABASE_URL'))}")
+@app.route('/doctor/availability')
+@login_required
+@doctor_required
+def manage_availability():
+    """Doctor manages their availability"""
+    doctor = Doctor.query.get(session['user_id'])
+    availability_slots = DoctorAvailability.query.filter_by(doctor_id=doctor.id, is_active=True).all()
+    
+    days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    return render_template('manage_availability.html', 
+                         doctor=doctor, 
+                         availability_slots=availability_slots,
+                         days_of_week=days_of_week)
 
-print(f"🔍 Final DB URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+@app.route('/doctor/availability/add', methods=['POST'])
+@login_required
+@doctor_required
+def add_availability():
+    """Add new availability slot"""
+    try:
+        availability = DoctorAvailability(
+            doctor_id=session['user_id'],
+            day_of_week=request.form['day_of_week'],
+            start_time=request.form['start_time'],
+            end_time=request.form['end_time'],
+            slot_duration=int(request.form.get('slot_duration', 30)),
+            notes=request.form.get('notes', '')
+        )
+        
+        db.session.add(availability)
+        db.session.commit()
+        flash('Availability added successfully!', 'success')
+        
+    except Exception as e:
+        flash('Error adding availability.', 'danger')
+    
+    return redirect(url_for('manage_availability'))
+
+@app.route('/doctor/availability/remove/<int:slot_id>')
+@login_required
+@doctor_required
+def remove_availability(slot_id):
+    """Remove availability slot"""
+    try:
+        slot = DoctorAvailability.query.get_or_404(slot_id)
+        
+        if slot.doctor_id != session['user_id']:
+            flash('Access denied.', 'danger')
+            return redirect(url_for('manage_availability'))
+        
+        slot.is_active = False
+        db.session.commit()
+        flash('Availability removed successfully!', 'success')
+        
+    except Exception as e:
+        flash('Error removing availability.', 'danger')
+    
+    return redirect(url_for('manage_availability'))
+
+@app.route('/patient/book-appointment/<int:doctor_id>')
+@login_required
+@patient_required
+def show_available_slots(doctor_id):
+    """Show available slots for specific doctor"""
+    doctor = Doctor.query.get_or_404(doctor_id)
+    patient = Patient.query.get(session['user_id'])
+    
+    # Get next 7 days
+    from datetime import datetime, timedelta
+    dates = []
+    for i in range(7):
+        date = datetime.now() + timedelta(days=i+1)
+        dates.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'display': date.strftime('%A, %B %d'),
+            'slots': get_available_slots_for_doctor(doctor_id, date.strftime('%Y-%m-%d'))
+        })
+    
+    return render_template('book_appointment.html', doctor=doctor, patient=patient, dates=dates)
+
+print(f" DATABASE_URL exists: {bool(os.environ.get('DATABASE_URL'))}")
+
+print(f" Final DB URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
 # Create database tables on startup
 

@@ -93,10 +93,10 @@
                        style="flex: 1; background: #6b7280; color: white; padding: 12px; border-radius: 8px; text-decoration: none; text-align: center; font-size: 14px; font-weight: 600; transition: background 0.3s; hover: background: #4b5563;">
                         <i class="fas fa-eye"></i> View Profile
                     </a>
-                    <button onclick="showBookingModal({{ doctor.id }}, 'Dr. {{ doctor.username }}')" 
-                            style="flex: 1; background: #0d9488; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background 0.3s; hover: background: #0f766e;">
-                        <i class="fas fa-calendar-plus"></i> Book Now
-                    </button>
+                    <a href="{{ url_for('show_available_slots', doctor_id=doctor.id) }}" 
+                       style="flex: 1; background: #0d9488; color: white; padding: 12px; border-radius: 8px; text-decoration: none; text-align: center; font-size: 14px; font-weight: 600; transition: background 0.3s; hover: background: #0f766e;">
+                        <i class="fas fa-calendar-plus"></i> View Available Times
+                    </a>
                 </div>
             </div>
         {% endfor %}
@@ -110,67 +110,6 @@
     </div>
 {% endif %}
 
-<!-- Booking Modal -->
-<div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-        <h3 style="margin-bottom: 20px; color: #0d9488;">
-            <i class="fas fa-calendar-plus"></i> Book Appointment
-        </h3>
-        <p id="doctorSelection" style="margin-bottom: 20px; color: #6b7280;"></p>
-        
-        <form method="POST" action="{{ url_for('book_appointment') }}">
-            <input type="hidden" id="selectedDoctorId" name="doctor_id">
-            
-            <div class="form-group">
-                <label><i class="fas fa-calendar"></i> Preferred Date</label>
-                <input type="date" name="date" required>
-            </div>
-
-            <div class="form-group">
-                <label><i class="fas fa-clock"></i> Preferred Time</label>
-                <select name="time" required>
-                    <option value="">Select time...</option>
-                    <option value="08:00">8:00 AM</option>
-                    <option value="08:30">8:30 AM</option>
-                    <option value="09:00">9:00 AM</option>
-                    <option value="09:30">9:30 AM</option>
-                    <option value="10:00">10:00 AM</option>
-                    <option value="10:30">10:30 AM</option>
-                    <option value="11:00">11:00 AM</option>
-                    <option value="11:30">11:30 AM</option>
-                    <option value="14:00">2:00 PM</option>
-                    <option value="14:30">2:30 PM</option>
-                    <option value="15:00">3:00 PM</option>
-                    <option value="15:30">3:30 PM</option>
-                    <option value="16:00">4:00 PM</option>
-                    <option value="16:30">4:30 PM</option>
-                    <option value="17:00">5:00 PM</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label><i class="fas fa-comment"></i> Reason for Visit (Optional)</label>
-                <textarea name="reason" rows="3" placeholder="Brief description of your health concern"></textarea>
-            </div>
-
-            <div style="background: #f0fdfa; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <p style="color: #065f46; font-size: 14px; margin: 0;">
-                    <i class="fas fa-info-circle"></i> <strong>Note:</strong> Your appointment request will be sent to the doctor for approval. You'll receive an email confirmation once reviewed.
-                </p>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">
-                    <i class="fas fa-paper-plane"></i> Send Request
-                </button>
-                <button type="button" onclick="hideBookingModal()" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- Information Box -->
 <div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 20px; border-radius: 10px; margin-top: 30px;">
     <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Smart Doctor Selection</h4>
@@ -180,40 +119,4 @@
         from your very first consultation.
     </p>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function showBookingModal(doctorId, doctorName) {
-        document.getElementById('selectedDoctorId').value = doctorId;
-        document.getElementById('doctorSelection').textContent = `Booking appointment with ${doctorName}`;
-        document.getElementById('bookingModal').style.display = 'flex';
-    }
-
-    function hideBookingModal() {
-        document.getElementById('bookingModal').style.display = 'none';
-    }
-
-    // Close modal on outside click
-    document.getElementById('bookingModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideBookingModal();
-        }
-    });
-
-    // Add hover effects to doctor cards
-    document.querySelectorAll('.doctor-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-            this.style.boxShadow = '0 8px 25px rgba(13, 148, 136, 0.2)';
-            this.style.borderColor = '#0d9488';
-        });
-
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-            this.style.borderColor = '#e5e7eb';
-        });
-    });
-</script>
 {% endblock %}
