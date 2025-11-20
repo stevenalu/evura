@@ -410,7 +410,7 @@ def render_email_template(template_name, **kwargs):
         """,
         'password_reset': f"""
             <div style="text-align: center; margin-bottom: 25px;">
-                <h3 style="color: #0d9488; font-size: 24px; margin-bottom: 10px;">🔐 Password Reset Request</h3>
+                <h3 style="color: #0d9488; font-size: 24px; margin-bottom: 10px;">Password Reset Request</h3>
             </div>
     
             <p style="font-size: 16px; line-height: 1.6;">Dear <strong>{kwargs.get('user_name')}</strong>,</p>
