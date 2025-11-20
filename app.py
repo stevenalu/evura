@@ -240,6 +240,16 @@ class DoctorAvailability(db.Model):
     # Relationship
     doctor = db.relationship('Doctor', backref='availability_slots')
 
+class PasswordReset(db.Model):
+    """Password reset tokens"""
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    user_type = db.Column(db.String(10), nullable=False)  # 'patient' or 'doctor'
+    token = db.Column(db.String(100), nullable=False, unique=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # EMAIL FUNCTIONS
 
 def send_email(to, subject, template_name, **kwargs):
@@ -397,11 +407,44 @@ def render_email_template(template_name, **kwargs):
             <p style="font-size: 16px; line-height: 1.6;">You can view your updated medical history anytime in your E-Vura dashboard.</p>
             <p style="font-size: 16px; line-height: 1.6;">Take care and thank you for trusting E-Vura with your healthcare journey!</p>
             <p style="margin-top: 30px; font-size: 16px;">Best regards,<br><strong>The E-Vura Healthcare Team</strong></p>
+        """,
+        'password_reset': f"""
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h3 style="color: #0d9488; font-size: 24px; margin-bottom: 10px;">🔐 Password Reset Request</h3>
+            </div>
+    
+            <p style="font-size: 16px; line-height: 1.6;">Dear <strong>{kwargs.get('user_name')}</strong>,</p>
+            <p style="font-size: 16px; line-height: 1.6;">You requested a password reset for your E-Vura account.</p>
+    
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{kwargs.get('reset_link')}" 
+                    style="background: #0d9488; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600; display: inline-block;">
+                    Reset Password
+                </a>
+            </div>
+    
+            <div style="background: #fef7f0; border-left: 4px solid #f59e0b; padding: 20px; margin: 25px 0; border-radius: 8px;">
+                <p style="margin: 0; color: #92400e; font-size: 14px;">
+                    <strong> Important:</strong> This link expires in 1 hour for security reasons.
+                </p>
+            </div>
+    
+            <p style="font-size: 14px; color: #6b7280; line-height: 1.6;">
+                If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+            </p>
+    
+            <p style="margin-top: 30px; font-size: 16px;">Best regards,<br><strong>The E-Vura Healthcare Team</strong></p>
         """
     }
     
     content = templates.get(template_name, f"<p>E-Vura Healthcare Platform notification</p>")
     return base_style.format(content=content)
+
+def generate_reset_token():
+    """Generate secure random token"""
+    import secrets
+    return secrets.token_urlsafe(32)
+
 
 def generate_time_slots(start_time, end_time, duration=30):
     """Generate time slots between start and end time"""
@@ -1169,6 +1212,93 @@ def show_available_slots(doctor_id):
 print(f" DATABASE_URL exists: {bool(os.environ.get('DATABASE_URL'))}")
 
 print(f" Final DB URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    """Send password reset email"""
+    if request.method == 'POST':
+        email = request.form['email'].strip().lower()
+        user_type = request.form['user_type']
+        
+        # Check if user exists
+        if user_type == 'patient':
+            user = Patient.query.filter_by(email=email).first()
+        else:
+            user = Doctor.query.filter_by(email=email).first()
+        
+        if user:
+            # Generate reset token
+            token = generate_reset_token()
+            expires_at = datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
+            
+            # Save reset token
+            reset_request = PasswordReset(
+                email=email,
+                user_type=user_type,
+                token=token,
+                expires_at=expires_at
+            )
+            db.session.add(reset_request)
+            db.session.commit()
+            
+            # Send reset email
+            reset_link = url_for('reset_password', token=token, _external=True)
+            send_email(
+                to=email,
+                subject="Password Reset Request",
+                template_name='password_reset',
+                user_name=user.username,
+                reset_link=reset_link
+            )
+        
+        # Always show success message (security - don't reveal if email exists)
+        flash('If that email is registered, you will receive password reset instructions.', 'info')
+        return redirect(url_for('login'))
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    """Reset password with valid token"""
+    # Find valid token
+    reset_request = PasswordReset.query.filter_by(
+        token=token,
+        used=False
+    ).filter(PasswordReset.expires_at > datetime.utcnow()).first()
+    
+    if not reset_request:
+        flash('Invalid or expired reset link.', 'danger')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters.', 'warning')
+            return render_template('reset_password.html', token=token)
+        
+        if password != confirm_password:
+            flash('Passwords do not match.', 'warning')
+            return render_template('reset_password.html', token=token)
+        
+        # Update user password
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        
+        if reset_request.user_type == 'patient':
+            user = Patient.query.filter_by(email=reset_request.email).first()
+        else:
+            user = Doctor.query.filter_by(email=reset_request.email).first()
+        
+        user.password = hashed_password
+        reset_request.used = True
+        
+        db.session.commit()
+        
+        flash('Password updated successfully! Please log in.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('reset_password.html', token=token)
 
 @app.route('/reset-db')
 def reset_database():
