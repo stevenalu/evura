@@ -27,7 +27,7 @@
         {% endwith %}
     </div>
 
-    {% if request.endpoint in ['index', 'login', 'register_patient', 'register_doctor'] %}
+    {% if request.endpoint in ['index', 'login', 'register_patient', 'apply_doctor'] %}
         <!-- Single page layout (landing, login, register) -->
         <div class="single-page">
             {% block content1 %}{% endblock %}

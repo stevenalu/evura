@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Doctor Applications - E-Vura</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f7fa; 
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+        .header { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 10px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .alert-box {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
+        }
+        .section { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 10px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .app-card { 
+            border: 1px solid #e5e7eb; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            border-radius: 10px; 
+            background: #fafafa;
+        }
+        .approve-btn { 
+            background: #10b981; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-right: 10px; 
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .approve-btn:hover {
+            background: #059669;
+        }
+        .reject-btn { 
+            background: #ef4444; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .reject-btn:hover {
+            background: #dc2626;
+        }
+        .status-pending { 
+            border-left: 5px solid #f59e0b; 
+        }
+        .status-approved { 
+            border-left: 5px solid #10b981; 
+        }
+        .status-rejected { 
+            border-left: 5px solid #ef4444; 
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e5e7eb;
+        }
+        .logout-link {
+            float: right;
+            background: #6b7280;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .logout-link:hover {
+            background: #4b5563;
+        }
+        .flash-message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .flash-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        .flash-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .flash-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        .document-link {
+            color: #0d9488;
+            margin-left: 15px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .document-link:hover {
+            text-decoration: underline;
+        }
+        .empty-state {
+            color: #6b7280;
+            text-align: center;
+            padding: 40px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>E-Vura Admin - Doctor Applications</h1>
+            <p>Review and manage doctor application submissions</p>
+            <a href="{{ url_for('index') }}" style="color: #0d9488;">Back to E-Vura</a>
+            <a href="{{ url_for('admin_logout') }}" class="logout-link">Logout Admin</a>
+            <div style="clear: both;"></div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Action Required Alert -->
+        {% if pending|length > 0 %}
+        <div class="alert-box">
+            <h3 style="color: #991b1b; margin-bottom: 10px;">Action Required</h3>
+            <p style="color: #7f1d1d; font-size: 18px; margin: 0;">
+                <strong>{{ pending|length }}</strong> doctor application{% if pending|length != 1 %}s{% endif %} waiting for your review
+            </p>
+            {% if today_count is defined and today_count > 0 %}
+            <p style="color: #7f1d1d; font-size: 14px; margin-top: 10px;">
+                ({{ today_count }} submitted today)
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Pending Applications Section -->
+        <div class="section">
+            <h2>Pending Applications ({{ pending|length }})</h2>
+            {% if pending %}
+                {% for app in pending %}
+                <div class="app-card status-pending">
+                    <h3>Dr. {{ app.username }}</h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Email:</strong><br>{{ app.email }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Phone:</strong><br>{{ app.phone or 'Not provided' }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Specialization:</strong><br>{{ app.specialization or 'General Practice' }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Hospital:</strong><br>{{ app.hospital or 'Not specified' }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Experience:</strong><br>{{ app.years_experience or 0 }} years
+                        </div>
+                        <div class="info-item">
+                            <strong>RMDC License:</strong><br>{{ app.rmdc_license or 'Not provided' }}
+                        </div>
+                        {% if app.moh_registration %}
+                        <div class="info-item">
+                            <strong>MOH Registration:</strong><br>{{ app.moh_registration }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if app.license_file %}
+                    <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        <strong>License Document:</strong> {{ app.license_file }}
+                        <a href="/uploads/{{ app.license_file }}" target="_blank" class="document-link">
+                            View Document
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb; font-size: 14px; color: #6b7280;">
+                        <strong>Applied:</strong> {{ app.submitted_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <a href="{{ url_for('approve_application', app_id=app.id) }}" 
+                           onclick="return confirm('Approve Dr. {{ app.username }}? This will create their doctor account and send them an approval email.')"
+                           class="approve-btn">Approve Application</a>
+                        <a href="{{ url_for('reject_application', app_id=app.id) }}"
+                           onclick="return confirm('Reject this application? The applicant will be notified via email.')"
+                           class="reject-btn">Reject Application</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    No pending applications at this time
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recently Approved Section -->
+        {% if approved %}
+        <div class="section">
+            <h2>Recently Approved ({{ approved|length }})</h2>
+            {% for app in approved %}
+            <div class="app-card status-approved">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Dr. {{ app.username }}</strong> - {{ app.email }}
+                        {% if app.specialization %}
+                        <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
+                            {{ app.specialization }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right; color: #6b7280; font-size: 14px;">
+                        Approved: {{ app.reviewed_at.strftime('%B %d, %Y') if app.reviewed_at }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Recently Rejected Section -->
+        {% if rejected %}
+        <div class="section">
+            <h2>Recently Rejected ({{ rejected|length }})</h2>
+            {% for app in rejected %}
+            <div class="app-card status-rejected">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>{{ app.username }}</strong> - {{ app.email }}
+                        {% if app.specialization %}
+                        <div style="color: #6b7280; font-size: 14px; margin-top: 5px;">
+                            {{ app.specialization }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right; color: #6b7280; font-size: 14px;">
+                        Rejected: {{ app.reviewed_at.strftime('%B %d, %Y') if app.reviewed_at }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
