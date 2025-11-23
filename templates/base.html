@@ -31,9 +31,13 @@
 
     {% if request.endpoint in ['index', 'login', 'register_patient', 'apply_doctor'] %}
         <!-- Single page layout (landing, login, register) -->
+        {% if request.endpoint != 'index' %}
         <div class="single-page">
+        {% endif %}
             {% block content1 %}{% endblock %}
+        {% if request.endpoint != 'index' %}
         </div>
+        {% endif %}
         
         {% if request.endpoint == 'index' %}
         <!-- Footer for landing page -->
