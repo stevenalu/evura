@@ -14,37 +14,39 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         background: #f6f8fa;
-        overflow: hidden;
-        height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 100vh;
     }
     
     .apply-container {
-        height: 100vh;
+        min-height: 100vh;
         width: 100%;
         display: flex;
         background: #f6f8fa;
-        overflow: hidden;
+        overflow-x: hidden;
     }
     
     .apply-wrapper {
         width: 100%;
-        height: 100%;
+        min-height: 100vh;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0;
         align-items: stretch;
         background: white;
         border: 1px solid rgba(0, 0, 0, 0.08);
-        overflow: hidden;
+        overflow-x: hidden;
     }
     
     .form-section {
         background: white;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow-x: hidden;
         position: relative;
         border-right: 1px solid rgba(0, 0, 0, 0.08);
+        min-height: 100vh;
     }
     
     .form-header {
@@ -94,19 +96,28 @@
     
     .form-content-wrapper {
         flex: 1;
-        padding: 3rem 2rem 2rem;
+        padding: 2rem;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow-x: hidden;
         align-items: center;
+        min-width: 0;
+        width: 100%;
     }
     
     .form-wrapper {
         flex: 1;
-        overflow-y: auto;
-        padding-right: 0.5rem;
+        overflow-y: visible;
+        overflow-x: hidden;
         width: 100%;
         max-width: 700px;
+        min-width: 0;
+        padding: 0;
+    }
+    
+    .step-content {
+        width: 100%;
+        min-width: 0;
     }
     
     .form-steps {
@@ -176,6 +187,8 @@
         gap: 0.5rem;
         padding-bottom: 0.75rem;
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        width: 100%;
+        min-width: 0;
     }
     
     .form-section-title i {
@@ -188,11 +201,15 @@
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
         margin-bottom: 1rem;
+        width: 100%;
+        min-width: 0;
     }
     
     .form-group {
         margin-bottom: 1.25rem;
         position: relative;
+        width: 100%;
+        min-width: 0;
     }
     
     .form-group label {
@@ -213,12 +230,16 @@
     
     .input-wrapper {
         position: relative;
+        width: 100%;
+        max-width: 100%;
     }
     
     .form-group input[type="text"],
     .form-group input[type="email"],
     .form-group input[type="password"],
-    .form-group input[type="tel"] {
+    .form-group input[type="tel"],
+    .form-group textarea,
+    .form-group select {
         width: 100%;
         padding: 0.625rem 0.875rem;
         border: 1px solid #d1d9e0;
@@ -228,6 +249,8 @@
         background: white;
         color: #24292f;
         font-family: inherit;
+        box-sizing: border-box;
+        max-width: 100%;
     }
     
     .form-group input::placeholder {
@@ -294,12 +317,18 @@
     .file-upload-area {
         border: 2px dashed #d1d9e0;
         border-radius: 8px;
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
         text-align: center;
         background: #f6f8fa;
         cursor: pointer;
         transition: all 0.2s ease;
         position: relative;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .file-upload-area:hover {
@@ -323,11 +352,15 @@
         font-weight: 500;
         margin-bottom: 0.5rem;
         font-size: 0.875rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .file-upload-hint {
         color: #57606a;
         font-size: 0.75rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .file-name-display {
@@ -343,15 +376,14 @@
     }
     
     .experience-selector {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
         gap: 0.5rem;
-        flex-wrap: wrap;
+        width: 100%;
     }
     
     .experience-option {
-        flex: 1;
-        min-width: 70px;
-        padding: 0.75rem;
+        padding: 0.75rem 0.5rem;
         text-align: center;
         border: 1px solid #d1d9e0;
         border-radius: 6px;
@@ -361,6 +393,8 @@
         font-weight: 500;
         font-size: 0.875rem;
         color: #24292f;
+        min-width: 0;
+        width: 100%;
     }
     
     .experience-option:hover {
@@ -383,6 +417,8 @@
         gap: 0.75rem;
         margin-top: 2rem;
         justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
     }
     
     .form-actions .btn {
@@ -481,32 +517,126 @@
     }
     
     @media (max-width: 968px) {
+        body {
+            overflow-y: auto;
+            height: auto;
+        }
+        
+        .apply-container {
+            min-height: 100vh;
+            height: auto;
+            overflow-y: auto;
+        }
+        
         .apply-wrapper {
             grid-template-columns: 1fr;
+            min-height: 100vh;
+            height: auto;
         }
         
         .image-section {
             display: none;
         }
         
+        .form-section {
+            border-right: none;
+            min-height: 100vh;
+            height: auto;
+            overflow-y: visible;
+        }
+        
         .form-content-wrapper {
-            padding: 1.5rem;
+            padding: 1.5rem 1rem;
+            overflow-y: visible;
+            min-height: auto;
         }
         
         .form-header {
-            padding: 1.25rem 1.5rem;
+            padding: 1.25rem 1rem;
         }
         
         .form-steps {
-            padding: 1rem 1.5rem;
+            padding: 1rem;
         }
         
         .form-row {
             grid-template-columns: 1fr;
         }
         
-        .form-section {
-            border-right: none;
+        .form-wrapper {
+            max-width: 100%;
+            overflow-y: visible;
+        }
+        
+        .experience-selector {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .experience-option {
+            padding: 0.625rem 0.25rem;
+            font-size: 0.8125rem;
+        }
+        
+        .file-upload-area {
+            padding: 1.25rem 0.75rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        body {
+            overflow-y: auto;
+        }
+        
+        .apply-container {
+            min-height: 100vh;
+        }
+        
+        .form-content-wrapper {
+            padding: 1rem 0.75rem;
+        }
+        
+        .form-header {
+            padding: 1rem 0.75rem;
+        }
+        
+        .form-header h2 {
+            font-size: 1.25rem;
+        }
+        
+        .form-header p {
+            font-size: 0.8125rem;
+        }
+        
+        .experience-selector {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn {
+            width: 100%;
+        }
+        
+        .file-upload-area {
+            padding: 1rem 0.5rem;
+        }
+        
+        .file-upload-area i {
+            font-size: 1.5rem;
+        }
+        
+        .file-upload-text {
+            font-size: 0.8125rem;
+        }
+        
+        .file-upload-hint {
+            font-size: 0.6875rem;
+        }
+        
+        .form-section-title {
+            font-size: 0.9375rem;
         }
     }
 </style>
