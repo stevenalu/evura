@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from datetime import datetime, timedelta
@@ -631,6 +631,7 @@ def register_patient():
         username = request.form['username'].strip()
         email = request.form['email'].strip().lower()
         password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
         
         if len(username) < 3:
             flash('Username must be at least 3 characters.', 'warning')
@@ -638,6 +639,10 @@ def register_patient():
         
         if len(password) < 6:
             flash('Password must be at least 6 characters.', 'warning')
+            return redirect(url_for('register_patient'))
+        
+        if password != confirm_password:
+            flash('Passwords do not match. Please try again.', 'warning')
             return redirect(url_for('register_patient'))
         
         if Patient.query.filter_by(email=email).first():
@@ -668,6 +673,7 @@ def apply_doctor():
         username = request.form['username'].strip()
         email = request.form['email'].strip().lower()
         password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
         
         # Validation
         if len(username) < 3:
@@ -676,6 +682,10 @@ def apply_doctor():
         
         if len(password) < 6:
             flash('Password must be at least 6 characters.', 'warning')
+            return redirect(url_for('apply_doctor'))
+        
+        if password != confirm_password:
+            flash('Passwords do not match. Please try again.', 'warning')
             return redirect(url_for('apply_doctor'))
         
         # Check if email already exists in applications or doctors
@@ -1598,6 +1608,7 @@ with app.app_context():
         import traceback
 
         print(f' Full traceback: {traceback.format_exc()}')
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

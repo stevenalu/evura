@@ -2,21 +2,769 @@
 
 {% block title %}E-Vura - Smart Healthcare Platform{% endblock %}
 
-{% block content1 %}
-<div class="hero">
-    <h1><i class="fas fa-heartbeat"></i> E-Vura Healthcare</h1>
-    <p>Your complete health journey, accessible anytime, anywhere. Connecting patients and doctors for better healthcare continuity in Rwanda.</p>
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
     
-    <div class="hero-buttons">
-        <a href="{{ url_for('register_patient') }}" class="btn btn-primary">
-            <i class="fas fa-user-plus"></i> Register as Patient
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+        background: #ffffff;
+        color: #1a1a1a;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Modern Navbar - Increased Height */
+    .navbar {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 1.5rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .navbar.scrolled {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .nav-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .logo-nav {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #0d9488;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+    }
+    
+    .nav-links a {
+        color: #24292f;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+    
+    .nav-links a:hover {
+        color: #0d9488;
+    }
+    
+    .btn-nav {
+        padding: 0.625rem 1.25rem;
+        background: #0d9488;
+        color: white;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-nav:hover {
+        background: #0f766e;
+    }
+    
+    /* Hero Section */
+    .hero-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 4rem 0;
+        background: #ffffff;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-content h1 {
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 600;
+        line-height: 1.2;
+        color: #24292f;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.02em;
+    }
+    
+    .hero-content p {
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: #57606a;
+        margin-bottom: 2rem;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .hero-image-wrapper {
+        position: relative;
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .hero-image-container {
+        width: 450px;
+        height: 450px;
+        position: relative;
+        border-radius: 50%;
+        overflow: hidden;
+        border-bottom-left-radius: 0;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+    
+    .hero-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .floating-circle {
+        position: absolute;
+        border-radius: 50%;
+        z-index: 0;
+    }
+    
+    .circle-1 {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+        top: 20px;
+        right: -40px;
+        opacity: 0.3;
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .circle-2 {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #10b981, #34d399);
+        bottom: 40px;
+        left: -30px;
+        opacity: 0.4;
+        animation: float 5s ease-in-out infinite;
+    }
+    
+    .circle-3 {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        top: 150px;
+        left: -20px;
+        opacity: 0.3;
+        animation: float 7s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    /* Sections */
+    .section {
+        padding: 6rem 0;
+        position: relative;
+    }
+    
+    .section-white {
+        background: #ffffff;
+    }
+    
+    .section-light {
+        background: #f6f8fa;
+    }
+    
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .section-header h2 {
+        font-size: clamp(2rem, 4vw, 2.5rem);
+        font-weight: 600;
+        color: #24292f;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.02em;
+    }
+    
+    .section-header p {
+        font-size: 1.125rem;
+        color: #57606a;
+    }
+    
+    /* What We Do - Animated Cards */
+    .what-we-do-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: start;
+    }
+    
+    .section-image {
+        width: 100%;
+        height: 450px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    
+    .section-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        height: 450px;
+    }
+    
+    .feature-item {
+        padding: 1.25rem;
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(13, 148, 136, 0.05), transparent);
+        transition: left 0.5s;
+    }
+    
+    .feature-item:hover::before {
+        left: 100%;
+    }
+    
+    .feature-item:hover {
+        border-color: #0d9488;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+        transform: translateY(-4px);
+    }
+    
+    .feature-icon {
+        width: 36px;
+        height: 36px;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0d9488;
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-item:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .feature-item h3 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #24292f;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-item p {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: #57606a;
+    }
+    
+    /* Why Choose */
+    .subtle-section {
+        padding: 6rem 0;
+        background: #f6f8fa;
+    }
+    
+    .why-choose-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .why-choose-item {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease;
+    }
+    
+    .why-choose-item:hover {
+        border-color: #0d9488;
+        box-shadow: 0 3px 12px rgba(13, 148, 136, 0.15);
+    }
+    
+    .why-choose-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f0fdfa;
+        border-radius: 12px;
+        color: #0d9488;
+        font-size: 1.5rem;
+    }
+    
+    .why-choose-item h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #24292f;
+        margin-bottom: 0.5rem;
+    }
+    
+    .why-choose-item p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #57606a;
+    }
+    
+    /* Testimonials */
+    .testimonials-section {
+        padding: 6rem 0;
+        background: #ffffff;
+    }
+    
+    .testimonials-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+    }
+    
+    .testimonial-image-container {
+        width: 100%;
+        height: 500px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    
+    .testimonial-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity 0.5s ease;
+    }
+    
+    .testimonial-carousel {
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .testimonial-item {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .testimonial-item.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .testimonial-text {
+        font-size: 1.125rem;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+        font-style: italic;
+        color: #24292f;
+    }
+    
+    .testimonial-author {
+        font-size: 0.9375rem;
+        color: #0d9488;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .testimonial-role {
+        font-size: 0.8125rem;
+        color: #57606a;
+    }
+    
+    .testimonial-controls {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        justify-content: center;
+    }
+    
+    .testimonial-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #d1d9e0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        padding: 0;
+    }
+    
+    .testimonial-dot.active {
+        background: #0d9488;
+        width: 24px;
+        border-radius: 4px;
+    }
+    
+    /* Scroll animations */
+    .scroll-fade {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .scroll-fade.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Responsive */
+    @media (max-width: 968px) {
+        .hero-container,
+        .what-we-do-content,
+        .testimonials-content {
+            grid-template-columns: 1fr;
+            gap: 3rem;
+        }
+        
+        .hero-image-wrapper {
+            height: 400px;
+        }
+        
+        .hero-image-container {
+            width: 350px;
+            height: 350px;
+        }
+        
+        .features-grid {
+            height: auto;
+            grid-template-columns: 1fr;
+        }
+        
+        .why-choose-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .nav-links {
+            gap: 1rem;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        .nav-links a:not(.btn-nav) {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content1 %}
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="{{ url_for('index') }}" class="logo-nav">
+            <i class="fas fa-heartbeat"></i> E-Vura
         </a>
-        <a href="{{ url_for('apply_doctor') }}" class="btn btn-secondary">
-            <i class="fas fa-user-md"></i> Apply as Doctor
-        </a>
-        <a href="{{ url_for('login') }}" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
-            <i class="fas fa-sign-in-alt"></i> Login
-        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#why">Why Us</a>
+            <a href="#testimonials">Testimonials</a>
+            <a href="{{ url_for('login') }}">Sign In</a>
+            <a href="{{ url_for('apply_doctor') }}" class="btn-nav">Apply as Doctor</a>
+        </div>
+    </div>
+</nav>
+
+<div class="hero-section">
+    <div class="hero-container">
+        <div class="hero-content">
+            <h1>Complete Healthcare Continuity</h1>
+            <p>Your complete medical history in one secure platform. Better care through informed decisions.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('apply_doctor') }}" class="btn btn-primary" style="padding: 12px 24px; font-size: 0.9375rem; border-radius: 6px; font-weight: 500;">
+                    Apply as Doctor
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary" style="padding: 12px 24px; font-size: 0.9375rem; border-radius: 6px; font-weight: 500;">
+                    Sign In
+                </a>
+            </div>
+        </div>
+        <div class="hero-image-wrapper">
+            <div class="floating-circle circle-1"></div>
+            <div class="floating-circle circle-2"></div>
+            <div class="floating-circle circle-3"></div>
+            <div class="hero-image-container">
+                <img src="{{ url_for('static', filename='images/batel-studio-ttSRjiYG_WM-unsplash.jpg') }}" alt="African healthcare professional">
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="section section-white" id="features">
+    <div class="container">
+        <div class="section-header scroll-fade">
+            <h2>What We Do</h2>
+            <p>Seamless medical record management</p>
+        </div>
+        
+        <div class="what-we-do-content">
+            <div class="section-image scroll-fade">
+                <img src="{{ url_for('static', filename='images/side-view-woman-doctor-s-appointment.jpg') }}" alt="African healthcare technology">
+            </div>
+            <div class="features-grid scroll-fade">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-medical"></i>
+                    </div>
+                    <h3>Medical Records</h3>
+                    <p>Complete history in one secure platform accessible anytime, anywhere.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h3>Doctor Connectivity</h3>
+                    <p>Instant access to your complete medical history for better care decisions.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>Easy Booking</h3>
+                    <p>Book appointments with verified doctors seamlessly through our platform.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your medical data is encrypted and protected with industry-leading security.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="subtle-section" id="why">
+    <div class="container">
+        <div class="section-header scroll-fade">
+            <h2>Why Choose E-Vura?</h2>
+            <p>Built for modern healthcare</p>
+        </div>
+        
+        <div class="why-choose-grid">
+            <div class="why-choose-item scroll-fade">
+                <div class="why-choose-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Secure & Private</h3>
+                <p>Your data is encrypted and protected with industry-leading security measures</p>
+            </div>
+            
+            <div class="why-choose-item scroll-fade">
+                <div class="why-choose-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>24/7 Access</h3>
+                <p>Access your records anytime, anywhere with our cloud-based platform</p>
+            </div>
+            
+            <div class="why-choose-item scroll-fade">
+                <div class="why-choose-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Verified Doctors</h3>
+                <p>All healthcare providers are verified and licensed professionals</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="testimonials-section" id="testimonials">
+    <div class="container">
+        <div class="section-header scroll-fade">
+            <h2>Trusted by Healthcare Professionals</h2>
+            <p>What our users say</p>
+        </div>
+        
+        <div class="testimonials-content">
+            <div class="testimonial-image-container scroll-fade">
+                <img src="{{ url_for('static', filename='images/national-cancer-institute-L8tWZT4CcVQ-unsplash.jpg') }}" alt="African healthcare professional" id="testimonialImage">
+            </div>
+            <div class="testimonial-carousel scroll-fade">
+                <div class="testimonial-item active">
+                    <p class="testimonial-text">"E-Vura has transformed how I manage patient records. The complete medical history at my fingertips ensures I provide the best possible care."</p>
+                    <p class="testimonial-author">Dr. Amani Karekezi</p>
+                    <p class="testimonial-role">General Practitioner, Kigali</p>
+                </div>
+                <div class="testimonial-item">
+                    <p class="testimonial-text">"As a patient, having all my medical records in one place has been life-changing. No more carrying papers or explaining my history repeatedly."</p>
+                    <p class="testimonial-author">Jean Paul Uwimana</p>
+                    <p class="testimonial-role">Patient, Kigali</p>
+                </div>
+                <div class="testimonial-item">
+                    <p class="testimonial-text">"The platform's security and ease of use make it an essential tool for modern healthcare. My patients trust it, and so do I."</p>
+                    <p class="testimonial-author">Dr. Grace Mukamana</p>
+                    <p class="testimonial-role">Pediatrician, Butare</p>
+                </div>
+                <div class="testimonial-item">
+                    <p class="testimonial-text">"E-Vura makes managing my chronic condition so much easier. All my doctors can see my complete history, leading to better coordinated care."</p>
+                    <p class="testimonial-author">Marie Claire Nkurunziza</p>
+                    <p class="testimonial-role">Patient, Gisenyi</p>
+                </div>
+                <div class="testimonial-controls">
+                    <button class="testimonial-dot active" onclick="showTestimonial(0)"></button>
+                    <button class="testimonial-dot" onclick="showTestimonial(1)"></button>
+                    <button class="testimonial-dot" onclick="showTestimonial(2)"></button>
+                    <button class="testimonial-dot" onclick="showTestimonial(3)"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+    
+    // Scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.scroll-fade').forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Testimonial carousel with diverse African healthcare images
+    const testimonialImages = [
+        '{{ url_for("static", filename="images/national-cancer-institute-L8tWZT4CcVQ-unsplash.jpg") }}',
+        '{{ url_for("static", filename="images/batel-studio-ttSRjiYG_WM-unsplash.jpg") }}',
+        '{{ url_for("static", filename="images/pexels-ninthgrid-2149521550-30677591.jpg") }}',
+        '{{ url_for("static", filename="images/francis-odeyemi-Xq-RY9z8VY4-unsplash.jpg") }}'
+    ];
+    
+    function showTestimonial(index) {
+        const items = document.querySelectorAll('.testimonial-item');
+        const dots = document.querySelectorAll('.testimonial-dot');
+        const image = document.getElementById('testimonialImage');
+        
+        items.forEach(item => item.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        items[index].classList.add('active');
+        dots[index].classList.add('active');
+        
+        if (image && testimonialImages[index]) {
+            image.style.opacity = '0';
+            setTimeout(() => {
+                image.src = testimonialImages[index];
+                image.style.opacity = '1';
+            }, 250);
+        }
+    }
+    
+    // Auto-rotate testimonials
+    let currentTestimonial = 0;
+    setInterval(() => {
+        currentTestimonial = (currentTestimonial + 1) % 4;
+        showTestimonial(currentTestimonial);
+    }, 5000);
+</script>
 {% endblock %}

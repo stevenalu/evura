@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}E-Vura - Your Health Journey{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="alternate icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d9488'/><path d='M30 50 L40 60 L70 30' stroke='white' stroke-width='8' fill='none' stroke-linecap='round'/></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
@@ -29,9 +31,13 @@
 
     {% if request.endpoint in ['index', 'login', 'register_patient', 'apply_doctor'] %}
         <!-- Single page layout (landing, login, register) -->
+        {% if request.endpoint != 'index' %}
         <div class="single-page">
+        {% endif %}
             {% block content1 %}{% endblock %}
+        {% if request.endpoint != 'index' %}
         </div>
+        {% endif %}
         
         {% if request.endpoint == 'index' %}
         <!-- Footer for landing page -->

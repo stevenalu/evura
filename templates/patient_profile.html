@@ -4,17 +4,17 @@
 
 {% block content %}
 <!-- Header -->
-<div style="background: white; border-radius: 15px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
-    <div style="width: 120px; height: 120px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; font-weight: bold; margin: 0 auto 20px;">
+<div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; text-align: center; width: 100%;">
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; font-weight: bold; margin: 0 auto 16px;">
         {{ patient.username[0]|upper }}
     </div>
-    <h1 style="font-size: 28px; margin-bottom: 10px;">{{ patient.username }}'s Profile</h1>
-    <p style="color: #6b7280;">Manage your personal and medical information</p>
+    <h1 style="font-size: 1.25rem; margin-bottom: 8px; font-weight: 600;">{{ patient.username }}'s Profile</h1>
+    <p style="color: #6b7280; font-size: 0.8125rem;">Manage your personal and medical information</p>
 </div>
 
 <!-- Chronic Conditions Alert -->
 {% if patient.chronic_conditions %}
-<div style="background: #fef7f0; border-left: 5px solid #f59e0b; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+<div style="background: white; border: 2px solid #f59e0b; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
     <h3 style="color: #92400e; margin-bottom: 15px;">
         <i class="fas fa-exclamation-triangle"></i> Active Chronic Conditions
     </h3>
@@ -28,9 +28,9 @@
 <!-- Profile Form -->
 <form method="POST" action="{{ url_for('patient_profile') }}">
     <!-- Basic Information -->
-    <div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
-            <i class="fas fa-user"></i> Basic Information
+    <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; width: 100%;">
+        <h3 style="color: #111827; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; font-size: 1.125rem; font-weight: 600;">
+            <i class="fas fa-user" style="font-size: 0.9375rem;"></i> Basic Information
         </h3>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -62,9 +62,9 @@
     </div>
 
     <!-- Medical Information -->
-    <div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
-            <i class="fas fa-heartbeat"></i> Medical Information
+    <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; width: 100%;">
+        <h3 style="color: #111827; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; font-size: 1.125rem; font-weight: 600;">
+            <i class="fas fa-heartbeat" style="font-size: 0.9375rem;"></i> Medical Information
         </h3>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
@@ -110,26 +110,26 @@
     </div>
 
     <!-- Save Button -->
-    <div style="display: flex; gap: 15px; margin-bottom: 30px;">
-        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 15px; font-size: 16px;">
+    <div style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: center; width: 100%;">
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.875rem;">
             <i class="fas fa-save"></i> Save Changes
         </button>
-        <a href="{{ url_for('patient_dashboard') }}" class="btn btn-secondary" style="padding: 15px; font-size: 16px;">
+        <a href="{{ url_for('patient_dashboard') }}" class="btn btn-secondary" style="padding: 10px 24px; font-size: 0.875rem;">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 </form>
 
 <!-- Complete Medical History -->
-<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-    <h3 style="color: #111827; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;">
-        <i class="fas fa-file-medical"></i> Complete Medical History
+<div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; width: 100%;">
+    <h3 style="color: #111827; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; font-size: 1.125rem; font-weight: 600;">
+        <i class="fas fa-file-medical" style="font-size: 0.9375rem;"></i> Complete Medical History
     </h3>
     <p style="color: #6b7280; margin-bottom: 25px;">Your complete health journey - always accessible to your doctors</p>
     
     {% if records %}
         {% for record in records %}
-            <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 20px; transition: box-shadow 0.3s ease; hover: box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 20px; transition: border-color 0.3s ease;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                     <div>
                         <h4 style="color: #0d9488; margin-bottom: 5px;">Dr. {{ record.doctor.username }}</h4>
@@ -190,7 +190,7 @@
 </div>
 
 <!-- Timeline Information -->
-<div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 10px;">
+<div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 8px; border: 1px solid #bae6fd;">
     <h4 style="color: #0c4a6e; margin-bottom: 15px;"><i class="fas fa-timeline"></i> Why Your Medical History Matters</h4>
     <p style="color: #075985; margin: 0; line-height: 1.6;">
         E-Vura maintains your complete medical timeline. Whether you visit the same doctor in 2025 after seeing them in 2012, 
