@@ -151,31 +151,35 @@
                 {% set total_records = (apt.patient.medical_files|length) + (apt.patient.test_results|length) + (apt.patient.procedures|length) + (apt.patient.prescriptions|length) %}
                 {% if total_records > 0 %}
                 <div style="background: white; border: 2px solid #10b981; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 6px; margin-bottom: 12px;">
-                    <h5 style="color: #065f46; margin-bottom: 10px; font-size: 14px; font-weight: 600;">
-                        <i class="fas fa-history"></i> Medical History Available ({{ total_records }} records)
+                    <h5 style="color: #065f46; margin-bottom: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" 
+                        onclick="toggleHistory('history-{{ apt.id }}', this)">
+                        <span><i class="fas fa-history"></i> Medical History Available ({{ total_records }} records)</span>
+                        <i class="fas fa-chevron-down" id="history-icon-{{ apt.id }}"></i>
                     </h5>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
-                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #99f6e4;">
-                            <div style="font-weight: bold; color: #0d9488; font-size: 18px;">{{ apt.patient.medical_files|length }}</div>
-                            <div style="font-size: 11px; color: #666;">Files</div>
+                    <div id="history-{{ apt.id }}" style="display: none; margin-top: 12px;">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
+                            <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #99f6e4;">
+                                <div style="font-weight: bold; color: #0d9488; font-size: 18px;">{{ apt.patient.medical_files|length }}</div>
+                                <div style="font-size: 11px; color: #666;">Files</div>
+                            </div>
+                            <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #bfdbfe;">
+                                <div style="font-weight: bold; color: #3b82f6; font-size: 18px;">{{ apt.patient.test_results|length }}</div>
+                                <div style="font-size: 11px; color: #666;">Tests</div>
+                            </div>
+                            <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #fecaca;">
+                                <div style="font-weight: bold; color: #ef4444; font-size: 18px;">{{ apt.patient.procedures|length }}</div>
+                                <div style="font-size: 11px; color: #666;">Procedures</div>
+                            </div>
+                            <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #fde68a;">
+                                <div style="font-weight: bold; color: #f59e0b; font-size: 18px;">{{ apt.patient.prescriptions|length }}</div>
+                                <div style="font-size: 11px; color: #666;">Prescriptions</div>
+                            </div>
                         </div>
-                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #bfdbfe;">
-                            <div style="font-weight: bold; color: #3b82f6; font-size: 18px;">{{ apt.patient.test_results|length }}</div>
-                            <div style="font-size: 11px; color: #666;">Tests</div>
-                        </div>
-                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #fecaca;">
-                            <div style="font-weight: bold; color: #ef4444; font-size: 18px;">{{ apt.patient.procedures|length }}</div>
-                            <div style="font-size: 11px; color: #666;">Procedures</div>
-                        </div>
-                        <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border: 1px solid #fde68a;">
-                            <div style="font-weight: bold; color: #f59e0b; font-size: 18px;">{{ apt.patient.prescriptions|length }}</div>
-                            <div style="font-size: 11px; color: #666;">Prescriptions</div>
-                        </div>
+                        <a href="{{ url_for('view_patient_history', patient_id=apt.patient.id) }}" 
+                           style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-eye"></i> View Complete Medical History
+                        </a>
                     </div>
-                    <a href="{{ url_for('view_patient_history', patient_id=apt.patient.id) }}" 
-                       style="display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: white; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600;">
-                        <i class="fas fa-eye"></i> View Complete Medical History
-                    </a>
                 </div>
                 {% else %}
                 <div style="background: white; border: 2px solid #f59e0b; border-left: 4px solid #f59e0b; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px;">
@@ -185,51 +189,33 @@
                 </div>
                 {% endif %}
 
-                <!-- Patient Information Summary -->
-                <div style="background: white; border: 2px solid #0ea5e9; border-left: 4px solid #0ea5e9; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px;">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 13px; color: #0c4a6e;">
-                        {% if apt.patient.blood_type %}
-                        <div><strong>Blood Type:</strong> {{ apt.patient.blood_type }}</div>
-                        {% endif %}
-                        {% if apt.patient.allergies %}
-                        <div><strong>Allergies:</strong> <span style="color: #dc2626; font-weight: 600;">{{ apt.patient.allergies }}</span></div>
-                        {% endif %}
-                        {% if apt.patient.emergency_contact %}
-                        <div><strong>Emergency:</strong> {{ apt.patient.emergency_contact }}</div>
-                        {% endif %}
-                        {% if apt.patient.date_of_birth %}
-                        <div><strong>DOB:</strong> {{ apt.patient.date_of_birth }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-
                 <!-- Action Buttons -->
                 <div style="border-top: 1px solid #e5e7eb; padding-top: 15px; margin-top: 15px;">
                     {% if apt.status == 'pending' %}
-                        <div style="display: flex; gap: 10px;">
-                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
                                 <input type="hidden" name="status" value="confirmed">
-                                <button type="submit" class="btn btn-success" style="width: 100%;">
-                                    <i class="fas fa-check"></i> Accept Request
+                                <button type="submit" class="btn btn-success" style="padding: 8px 16px; font-size: 0.8125rem;">
+                                    <i class="fas fa-check"></i> Accept
                                 </button>
                             </form>
-                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
                                 <input type="hidden" name="status" value="cancelled">
-                                <button type="submit" class="btn btn-danger" style="width: 100%;">
-                                    <i class="fas fa-times"></i> Reject Request
+                                <button type="submit" class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8125rem;">
+                                    <i class="fas fa-times"></i> Reject
                                 </button>
                             </form>
                         </div>
                     {% elif apt.status == 'confirmed' %}
-                        <div style="display: flex; gap: 10px;">
+                        <div style="display: flex; gap: 8px; justify-content: center;">
                             <a href="{{ url_for('view_patient_history', patient_id=apt.patient.id) }}" 
-                               class="btn btn-primary" style="flex: 1; text-decoration: none; text-align: center;">
-                                <i class="fas fa-history"></i> View Patient History
+                               class="btn btn-primary" style="padding: 8px 16px; font-size: 0.8125rem; text-decoration: none;">
+                                <i class="fas fa-history"></i> View History
                             </a>
-                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                            <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
                                 <input type="hidden" name="status" value="completed">
-                                <button type="submit" class="btn" style="width: 100%; background: #10b981; color: white;">
-                                    <i class="fas fa-check-double"></i> Mark as Completed
+                                <button type="submit" class="btn" style="padding: 8px 16px; font-size: 0.8125rem; background: #10b981; color: white;">
+                                    <i class="fas fa-check-double"></i> Complete
                                 </button>
                             </form>
                         </div>
@@ -292,24 +278,6 @@
     {% endif %}
 </div>
 
-<!-- Information Box -->
-<div style="background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-left: 4px solid #0d9488; padding: 25px; border-radius: 8px; border: 1px solid #99f6e4;">
-    <h3 style="color: #065f46; margin-bottom: 15px;">
-        <i class="fas fa-lightbulb"></i> Complete Patient Context at Your Fingertips
-    </h3>
-    <p style="color: #047857; line-height: 1.8; margin-bottom: 15px; font-size: 15px;">
-        E-Vura provides you with each patient's complete medical timeline, including <strong>chronic conditions</strong>, <strong>previous treatments</strong>, 
-        <strong>test results</strong>, and <strong>prescriptions from other doctors</strong>. This ensures you have full context for accurate diagnosis and treatment, 
-        even if it's the patient's first visit with you.
-    </p>
-    <div style="border-top: 1px solid #99f6e4; padding-top: 15px; margin-top: 15px;">
-        <p style="color: #065f46; margin: 0; font-size: 14px;">
-            <i class="fas fa-check-circle" style="color: #10b981;"></i> <strong>No more starting from scratch</strong> - Deliver better patient care with complete medical history<br>
-            <i class="fas fa-ban" style="color: #ef4444; margin-top: 8px; display: inline-block;"></i> <strong>Prevent duplicate tests</strong> - Save time and money by reviewing existing results<br>
-            <i class="fas fa-shield-alt" style="color: #3b82f6; margin-top: 8px; display: inline-block;"></i> <strong>Continuity of care</strong> - Build on previous treatments for better outcomes
-        </p>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -319,6 +287,22 @@
         location.reload();
     }, 300000); // 5 minutes
 
+    // Toggle medical history
+    function toggleHistory(historyId, header) {
+        const historyDiv = document.getElementById(historyId);
+        const icon = header.querySelector('i.fa-chevron-down, i.fa-chevron-up');
+        
+        if (historyDiv.style.display === 'none') {
+            historyDiv.style.display = 'block';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            historyDiv.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
+    
     // Highlight chronic patient cards
     document.addEventListener('DOMContentLoaded', function() {
         const chronicCards = document.querySelectorAll('[style*="border-left: 4px solid #f59e0b"]');

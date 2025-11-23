@@ -345,6 +345,50 @@
                     </div>
                 </div>
                 {% endfor %}
+                
+                <!-- Pagination for Pending -->
+                {% if pending_pagination and pending_pagination.pages > 1 %}
+                <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                    {% if pending_pagination.has_prev %}
+                    <a href="{{ url_for('admin_applications', page=pending_pagination.prev_num) }}" 
+                       style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                    {% else %}
+                    <span style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; color: #8b949e; font-size: 0.875rem; opacity: 0.5;">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </span>
+                    {% endif %}
+                    
+                    {% for page_num in pending_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == pending_pagination.page %}
+                            <span style="padding: 0.5rem 0.75rem; border: 1px solid #0d9488; border-radius: 6px; background: #0d9488; color: white; font-size: 0.875rem; font-weight: 600;">
+                                {{ page_num }}
+                            </span>
+                            {% else %}
+                            <a href="{{ url_for('admin_applications', page=page_num) }}" 
+                               style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                                {{ page_num }}
+                            </a>
+                            {% endif %}
+                        {% else %}
+                            <span style="padding: 0.5rem 0.75rem; color: #57606a;">...</span>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pending_pagination.has_next %}
+                    <a href="{{ url_for('admin_applications', page=pending_pagination.next_num) }}" 
+                       style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% else %}
+                    <span style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; color: #8b949e; font-size: 0.875rem; opacity: 0.5;">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
             {% else %}
                 <div class="empty-state">
                     <i class="fas fa-check-circle" style="font-size: 40px; color: #10b981; margin-bottom: 12px; display: block;"></i>
@@ -379,6 +423,50 @@
                 </div>
             </div>
             {% endfor %}
+            
+            <!-- Pagination for Approved -->
+            {% if approved_pagination and approved_pagination.pages > 1 %}
+            <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                {% if approved_pagination.has_prev %}
+                <a href="{{ url_for('admin_applications', approved_page=approved_pagination.prev_num) }}" 
+                   style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% else %}
+                <span style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; color: #8b949e; font-size: 0.875rem; opacity: 0.5;">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </span>
+                {% endif %}
+                
+                {% for page_num in approved_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == approved_pagination.page %}
+                        <span style="padding: 0.5rem 0.75rem; border: 1px solid #0d9488; border-radius: 6px; background: #0d9488; color: white; font-size: 0.875rem; font-weight: 600;">
+                            {{ page_num }}
+                        </span>
+                        {% else %}
+                        <a href="{{ url_for('admin_applications', approved_page=page_num) }}" 
+                           style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        <span style="padding: 0.5rem 0.75rem; color: #57606a;">...</span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if approved_pagination.has_next %}
+                <a href="{{ url_for('admin_applications', approved_page=approved_pagination.next_num) }}" 
+                   style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% else %}
+                <span style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; color: #8b949e; font-size: 0.875rem; opacity: 0.5;">
+                    Next <i class="fas fa-chevron-right"></i>
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
         {% endif %}
 
@@ -408,6 +496,50 @@
                 </div>
             </div>
             {% endfor %}
+            
+            <!-- Pagination for Rejected -->
+            {% if rejected_pagination and rejected_pagination.pages > 1 %}
+            <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                {% if rejected_pagination.has_prev %}
+                <a href="{{ url_for('admin_applications', rejected_page=rejected_pagination.prev_num) }}" 
+                   style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% else %}
+                <span style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; color: #8b949e; font-size: 0.875rem; opacity: 0.5;">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </span>
+                {% endif %}
+                
+                {% for page_num in rejected_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == rejected_pagination.page %}
+                        <span style="padding: 0.5rem 0.75rem; border: 1px solid #0d9488; border-radius: 6px; background: #0d9488; color: white; font-size: 0.875rem; font-weight: 600;">
+                            {{ page_num }}
+                        </span>
+                        {% else %}
+                        <a href="{{ url_for('admin_applications', rejected_page=page_num) }}" 
+                           style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        <span style="padding: 0.5rem 0.75rem; color: #57606a;">...</span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if rejected_pagination.has_next %}
+                <a href="{{ url_for('admin_applications', rejected_page=rejected_pagination.next_num) }}" 
+                   style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% else %}
+                <span style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; color: #8b949e; font-size: 0.875rem; opacity: 0.5;">
+                    Next <i class="fas fa-chevron-right"></i>
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
         {% endif %}
     </div>

@@ -114,8 +114,8 @@
         </button>
     </div>
     
-    {% if patient.appointments %}
-        {% for apt in patient.appointments|sort(attribute='appointment_date', reverse=True) %}
+    {% if appointments %}
+        {% for apt in appointments %}
             <div style="padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 15px; transition: border-color 0.3s;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                     <div>
@@ -175,6 +175,50 @@
             </button>
         </div>
     {% endif %}
+    
+    <!-- Pagination -->
+    {% if appointments_pagination and appointments_pagination.pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+        {% if appointments_pagination.has_prev %}
+        <a href="{{ url_for('patient_dashboard', page=appointments_pagination.prev_num) }}" 
+           class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; text-decoration: none;">
+            <i class="fas fa-chevron-left"></i> Previous
+        </a>
+        {% else %}
+        <span class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; opacity: 0.5; cursor: not-allowed;">
+            <i class="fas fa-chevron-left"></i> Previous
+        </span>
+        {% endif %}
+        
+        {% for page_num in appointments_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == appointments_pagination.page %}
+                <span style="padding: 0.5rem 0.75rem; border: 1px solid #0d9488; border-radius: 6px; background: #0d9488; color: white; font-size: 0.875rem; font-weight: 600;">
+                    {{ page_num }}
+                </span>
+                {% else %}
+                <a href="{{ url_for('patient_dashboard', page=page_num) }}" 
+                   style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+            {% else %}
+                <span style="padding: 0.5rem 0.75rem; color: #57606a;">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if appointments_pagination.has_next %}
+        <a href="{{ url_for('patient_dashboard', page=appointments_pagination.next_num) }}" 
+           class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; text-decoration: none;">
+            Next <i class="fas fa-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; opacity: 0.5; cursor: not-allowed;">
+            Next <i class="fas fa-chevron-right"></i>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 <!-- Quick Actions -->
@@ -200,20 +244,6 @@
     </button>
 </div>
 
-<!-- Information Box -->
-<div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-left: 4px solid #0ea5e9; padding: 25px; border-radius: 8px; border: 1px solid #bae6fd;">
-    <h3 style="color: #0c4a6e; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Your Health Journey Matters</h3>
-    <p style="color: #075985; line-height: 1.8; margin: 0; font-size: 15px;">
-        E-Vura maintains your complete medical timeline. Whether you visit the same doctor in 2025 after seeing them in 2012, 
-        or switch to a completely different hospital, your <strong>chronic conditions</strong>, <strong>past treatments</strong>, 
-        <strong>test results</strong>, and <strong>complete medical history</strong> are always accessible to provide the best possible care and prevent duplicate tests.
-    </p>
-    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bae6fd;">
-        <p style="color: #0c4a6e; margin: 0; font-size: 13px;">
-            <i class="fas fa-shield-alt"></i> <strong>Secure & Private:</strong> Your medical records are encrypted and only accessible to doctors you've authorized through appointments.
-        </p>
-    </div>
-</div>
 
 <!-- Booking Modal -->
 <div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
@@ -225,7 +255,7 @@
         <form method="POST" action="{{ url_for('book_appointment') }}">
             <div class="form-group">
                 <label><i class="fas fa-user-md"></i> Select Doctor</label>
-                <select name="doctor_id" required>
+                <select name="doctor_id" id="doctorSelect" required>
                     <option value="">Choose a doctor...</option>
                     {% for doctor in doctors %}
                         <option value="{{ doctor.id }}">
@@ -237,28 +267,15 @@
 
             <div class="form-group">
                 <label><i class="fas fa-calendar"></i> Preferred Date</label>
-                <input type="date" name="appointment_date" required>
+                <select name="appointment_date" id="dateSelect" required disabled>
+                    <option value="">Select a doctor first...</option>
+                </select>
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-clock"></i> Preferred Time</label>
-                <select name="appointment_time" required>
-                    <option value="">Select time...</option>
-                    <option value="08:00 AM">8:00 AM</option>
-                    <option value="08:30 AM">8:30 AM</option>
-                    <option value="09:00 AM">9:00 AM</option>
-                    <option value="09:30 AM">9:30 AM</option>
-                    <option value="10:00 AM">10:00 AM</option>
-                    <option value="10:30 AM">10:30 AM</option>
-                    <option value="11:00 AM">11:00 AM</option>
-                    <option value="11:30 AM">11:30 AM</option>
-                    <option value="02:00 PM">2:00 PM</option>
-                    <option value="02:30 PM">2:30 PM</option>
-                    <option value="03:00 PM">3:00 PM</option>
-                    <option value="03:30 PM">3:30 PM</option>
-                    <option value="04:00 PM">4:00 PM</option>
-                    <option value="04:30 PM">4:30 PM</option>
-                    <option value="05:00 PM">5:00 PM</option>
+                <select name="appointment_time" id="timeSelect" required disabled>
+                    <option value="">Select a date first...</option>
                 </select>
             </div>
 
@@ -305,12 +322,88 @@
         }
     });
 
-    // Set minimum date to today
+    // Handle doctor selection and load available dates
     document.addEventListener('DOMContentLoaded', function() {
-        const dateInput = document.querySelector('input[name="appointment_date"]');
-        if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.min = today;
+        const doctorSelect = document.getElementById('doctorSelect');
+        const dateSelect = document.getElementById('dateSelect');
+        const timeSelect = document.getElementById('timeSelect');
+        
+        if (doctorSelect) {
+            doctorSelect.addEventListener('change', function() {
+                const doctorId = this.value;
+                dateSelect.innerHTML = '<option value="">Loading dates...</option>';
+                dateSelect.disabled = true;
+                timeSelect.innerHTML = '<option value="">Select a date first...</option>';
+                timeSelect.disabled = true;
+                
+                if (doctorId) {
+                    fetch(`/api/doctor/${doctorId}/available-dates`)
+                        .then(response => response.json())
+                        .then(data => {
+                            dateSelect.innerHTML = '<option value="">Select a date...</option>';
+                            if (data.dates && data.dates.length > 0) {
+                                data.dates.forEach(date => {
+                                    const option = document.createElement('option');
+                                    option.value = date.date;
+                                    option.textContent = date.display;
+                                    dateSelect.appendChild(option);
+                                });
+                                dateSelect.disabled = false;
+                            } else {
+                                dateSelect.innerHTML = '<option value="">No available dates</option>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading dates:', error);
+                            dateSelect.innerHTML = '<option value="">Error loading dates</option>';
+                        });
+                } else {
+                    dateSelect.innerHTML = '<option value="">Select a doctor first...</option>';
+                }
+            });
+        }
+        
+        if (dateSelect) {
+            dateSelect.addEventListener('change', function() {
+                const doctorId = doctorSelect.value;
+                const date = this.value;
+                timeSelect.innerHTML = '<option value="">Loading times...</option>';
+                timeSelect.disabled = true;
+                
+                if (doctorId && date) {
+                    fetch(`/api/doctor/${doctorId}/available-times?date=${date}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            timeSelect.innerHTML = '<option value="">Select a time...</option>';
+                            if (data.times && data.times.length > 0) {
+                                data.times.forEach(slot => {
+                                    const option = document.createElement('option');
+                                    option.value = slot.time;
+                                    // Format time for display (convert 08:00 to 8:00 AM)
+                                    const [hours, minutes] = slot.time.split(':');
+                                    const hour = parseInt(hours);
+                                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                                    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                                    option.textContent = `${displayHour}:${minutes} ${ampm}${!slot.available ? ' (Booked)' : ''}`;
+                                    if (!slot.available) {
+                                        option.disabled = true;
+                                        option.style.color = '#8b949e';
+                                    }
+                                    timeSelect.appendChild(option);
+                                });
+                                timeSelect.disabled = false;
+                            } else {
+                                timeSelect.innerHTML = '<option value="">No available times</option>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading times:', error);
+                            timeSelect.innerHTML = '<option value="">Error loading times</option>';
+                        });
+                } else {
+                    timeSelect.innerHTML = '<option value="">Select a date first...</option>';
+                }
+            });
         }
     });
 </script>

@@ -165,28 +165,15 @@
             
             <div class="form-group">
                 <label><i class="fas fa-calendar"></i> Preferred Date</label>
-                <input type="date" name="date" required>
+                <select name="date" id="dateSelectProfile" required>
+                    <option value="">Loading dates...</option>
+                </select>
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-clock"></i> Preferred Time</label>
-                <select name="time" required>
-                    <option value="">Select time...</option>
-                    <option value="08:00">8:00 AM</option>
-                    <option value="08:30">8:30 AM</option>
-                    <option value="09:00">9:00 AM</option>
-                    <option value="09:30">9:30 AM</option>
-                    <option value="10:00">10:00 AM</option>
-                    <option value="10:30">10:30 AM</option>
-                    <option value="11:00">11:00 AM</option>
-                    <option value="11:30">11:30 AM</option>
-                    <option value="14:00">2:00 PM</option>
-                    <option value="14:30">2:30 PM</option>
-                    <option value="15:00">3:00 PM</option>
-                    <option value="15:30">3:30 PM</option>
-                    <option value="16:00">4:00 PM</option>
-                    <option value="16:30">4:30 PM</option>
-                    <option value="17:00">5:00 PM</option>
+                <select name="time" id="timeSelectProfile" required disabled>
+                    <option value="">Select a date first...</option>
                 </select>
             </div>
 
@@ -228,6 +215,92 @@
     document.getElementById('bookingModal').addEventListener('click', function(e) {
         if (e.target === this) {
             hideBookingModal();
+        }
+    });
+
+    // Load available dates when modal opens
+    function showBookingModal() {
+        const modal = document.getElementById('bookingModal');
+        modal.style.display = 'flex';
+        
+        // Load available dates
+        const doctorId = {{ doctor.id }};
+        const dateSelect = document.getElementById('dateSelectProfile');
+        const timeSelect = document.getElementById('timeSelectProfile');
+        
+        dateSelect.innerHTML = '<option value="">Loading dates...</option>';
+        dateSelect.disabled = true;
+        timeSelect.innerHTML = '<option value="">Select a date first...</option>';
+        timeSelect.disabled = true;
+        
+        fetch(`/api/doctor/${doctorId}/available-dates`)
+            .then(response => response.json())
+            .then(data => {
+                dateSelect.innerHTML = '<option value="">Select a date...</option>';
+                if (data.dates && data.dates.length > 0) {
+                    data.dates.forEach(date => {
+                        const option = document.createElement('option');
+                        option.value = date.date;
+                        option.textContent = date.display;
+                        dateSelect.appendChild(option);
+                    });
+                    dateSelect.disabled = false;
+                } else {
+                    dateSelect.innerHTML = '<option value="">No available dates</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading dates:', error);
+                dateSelect.innerHTML = '<option value="">Error loading dates</option>';
+            });
+    }
+    
+    // Handle date selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateSelect = document.getElementById('dateSelectProfile');
+        const timeSelect = document.getElementById('timeSelectProfile');
+        const doctorId = {{ doctor.id }};
+        
+        if (dateSelect) {
+            dateSelect.addEventListener('change', function() {
+                const date = this.value;
+                timeSelect.innerHTML = '<option value="">Loading times...</option>';
+                timeSelect.disabled = true;
+                
+                if (date) {
+                    fetch(`/api/doctor/${doctorId}/available-times?date=${date}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            timeSelect.innerHTML = '<option value="">Select a time...</option>';
+                            if (data.times && data.times.length > 0) {
+                                data.times.forEach(slot => {
+                                    const option = document.createElement('option');
+                                    option.value = slot.time;
+                                    // Format time for display
+                                    const [hours, minutes] = slot.time.split(':');
+                                    const hour = parseInt(hours);
+                                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                                    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                                    option.textContent = `${displayHour}:${minutes} ${ampm}${!slot.available ? ' (Booked)' : ''}`;
+                                    if (!slot.available) {
+                                        option.disabled = true;
+                                        option.style.color = '#8b949e';
+                                    }
+                                    timeSelect.appendChild(option);
+                                });
+                                timeSelect.disabled = false;
+                            } else {
+                                timeSelect.innerHTML = '<option value="">No available times</option>';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading times:', error);
+                            timeSelect.innerHTML = '<option value="">Error loading times</option>';
+                        });
+                } else {
+                    timeSelect.innerHTML = '<option value="">Select a date first...</option>';
+                }
+            });
         }
     });
 </script>

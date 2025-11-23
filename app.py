@@ -576,16 +576,25 @@ def get_available_slots_for_doctor(doctor_id, target_date):
         slots = generate_time_slots(avail.start_time, avail.end_time, avail.slot_duration)
         all_slots.extend(slots)
     
-    # Remove booked slots
+    # Get booked slots
     booked_slots = Appointment.query.filter_by(
         doctor_id=doctor_id,
         date=target_date
     ).filter(Appointment.status.in_(['pending', 'confirmed'])).all()
     
-    booked_times = [apt.time for apt in booked_slots]
-    available_slots = [slot for slot in all_slots if slot not in booked_times]
+    booked_times = {apt.time: apt.status for apt in booked_slots}
     
-    return sorted(available_slots)
+    # Return all slots with their status
+    slots_with_status = []
+    for slot in sorted(all_slots):
+        is_booked = slot in booked_times
+        slots_with_status.append({
+            'time': slot,
+            'available': not is_booked,
+            'status': booked_times.get(slot, 'available')
+        })
+    
+    return slots_with_status
 
 # HELPER FUNCTIONS
 
@@ -790,23 +799,55 @@ def logout():
 @patient_required
 def patient_dashboard():
     patient = Patient.query.get(session['user_id'])
-    appointments = Appointment.query.filter_by(patient_id=patient.id).order_by(Appointment.created_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    appointments_pagination = Appointment.query.filter_by(patient_id=patient.id).order_by(Appointment.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    appointments = appointments_pagination.items
+    
     records = MedicalRecord.query.filter_by(patient_id=patient.id).order_by(MedicalRecord.created_at.desc()).limit(5).all()
-    doctors = Doctor.query.all()
+    
+    # Only get doctors who have available slots
+    from datetime import datetime, timedelta
+    doctors_with_slots = []
+    all_doctors = Doctor.query.all()
+    
+    for doctor in all_doctors:
+        # Check if doctor has any availability in the next 7 days
+        has_slots = False
+        for i in range(7):
+            date = datetime.now() + timedelta(days=i+1)
+            slots = get_available_slots_for_doctor(doctor.id, date.strftime('%Y-%m-%d'))
+            if slots and any(slot['available'] for slot in slots):
+                has_slots = True
+                break
+        if has_slots:
+            doctors_with_slots.append(doctor)
     
     return render_template('patient_dashboard.html', 
                          patient=patient, appointments=appointments,
-                         records=records, doctors=doctors)
+                         appointments_pagination=appointments_pagination,
+                         records=records, doctors=doctors_with_slots)
 
 @app.route('/doctor/dashboard')
 @login_required
 @doctor_required
 def doctor_dashboard():
     doctor = Doctor.query.get(session['user_id'])
-    appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.created_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    appointments_pagination = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    appointments = appointments_pagination.items
+    
     patients = Patient.query.join(Appointment).filter(Appointment.doctor_id == doctor.id).distinct().all()
     
-    return render_template('doctor_dashboard.html', doctor=doctor, appointments=appointments, patients=patients)
+    return render_template('doctor_dashboard.html', doctor=doctor, appointments=appointments, 
+                         appointments_pagination=appointments_pagination, patients=patients)
 
 @app.route('/patient/profile', methods=['GET', 'POST'])
 @login_required
@@ -861,8 +902,52 @@ def doctor_profile():
 @login_required
 @patient_required
 def find_doctors():
-    doctors = Doctor.query.all()
-    return render_template('find_doctors.html', doctors=doctors)
+    # Get query parameters for search and filters
+    search_query = request.args.get('search', '').strip()
+    specialization_filter = request.args.get('specialization', '').strip()
+    hospital_filter = request.args.get('hospital', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 12  # 12 doctors per page
+    
+    # Start with all doctors
+    query = Doctor.query
+    
+    # Apply search filter (searches in name, specialization, hospital)
+    if search_query:
+        search_pattern = f'%{search_query}%'
+        query = query.filter(
+            db.or_(
+                Doctor.username.ilike(search_pattern),
+                Doctor.specialization.ilike(search_pattern),
+                Doctor.hospital.ilike(search_pattern)
+            )
+        )
+    
+    # Apply specialization filter
+    if specialization_filter:
+        query = query.filter(Doctor.specialization.ilike(f'%{specialization_filter}%'))
+    
+    # Apply hospital filter
+    if hospital_filter:
+        query = query.filter(Doctor.hospital.ilike(f'%{hospital_filter}%'))
+    
+    # Paginate the results
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    doctors = pagination.items
+    
+    # Get unique specializations and hospitals for filter dropdowns
+    all_doctors = Doctor.query.all()
+    specializations = sorted(set([d.specialization for d in all_doctors if d.specialization]))
+    hospitals = sorted(set([d.hospital for d in all_doctors if d.hospital]))
+    
+    return render_template('find_doctors.html', 
+                         doctors=doctors,
+                         pagination=pagination,
+                         search_query=search_query,
+                         specialization_filter=specialization_filter,
+                         hospital_filter=hospital_filter,
+                         specializations=specializations,
+                         hospitals=hospitals)
 
 @app.route('/doctor/<int:doctor_id>/profile')
 @login_required
@@ -881,10 +966,25 @@ def view_doctor_profile(doctor_id):
 @patient_required
 def book_appointment():
     try:
-        doctor_id = request.form['doctor_id']
-        date = request.form['date']
-        time = request.form['time']
+        doctor_id = request.form.get('doctor_id')
+        # Handle both 'date' and 'appointment_date' field names
+        date = request.form.get('date') or request.form.get('appointment_date')
+        # Handle both 'time' and 'appointment_time' field names
+        time = request.form.get('time') or request.form.get('appointment_time')
         reason = request.form.get('reason', '').strip()
+        
+        if not doctor_id or not date or not time:
+            flash('Please fill in all required fields.', 'danger')
+            return redirect(url_for('patient_dashboard'))
+        
+        # Convert time format if needed (from "08:00 AM" to "08:00")
+        if 'AM' in time or 'PM' in time:
+            from datetime import datetime
+            try:
+                time_obj = datetime.strptime(time, '%I:%M %p')
+                time = time_obj.strftime('%H:%M')
+            except:
+                pass
         
         doctor = Doctor.query.get(doctor_id)
         patient = Patient.query.get(session['user_id'])
@@ -893,12 +993,24 @@ def book_appointment():
             flash('Doctor not found.', 'danger')
             return redirect(url_for('find_doctors'))
         
+        if not patient:
+            flash('Patient not found.', 'danger')
+            return redirect(url_for('patient_dashboard'))
+        
+        # Check if slot is available
+        slots = get_available_slots_for_doctor(doctor_id, date)
+        slot_available = any(slot['time'] == time and slot['available'] for slot in slots)
+        
+        if not slot_available:
+            flash('This time slot is not available or already booked.', 'warning')
+            return redirect(url_for('patient_dashboard'))
+        
         existing = Appointment.query.filter_by(doctor_id=doctor_id, date=date, time=time).filter(
             Appointment.status.in_(['pending', 'confirmed'])).first()
         
         if existing:
             flash('This time slot is already booked.', 'warning')
-            return redirect(request.referrer or url_for('find_doctors'))
+            return redirect(url_for('patient_dashboard'))
         
         appointment = Appointment(
             patient_id=session['user_id'], doctor_id=doctor_id,
@@ -919,7 +1031,10 @@ def book_appointment():
         flash('Appointment booked! Doctor will be notified.', 'success')
         
     except Exception as e:
-        flash('Error booking appointment.', 'danger')
+        import traceback
+        print(f"Error booking appointment: {e}")
+        print(traceback.format_exc())
+        flash(f'Error booking appointment: {str(e)}', 'danger')
     
     return redirect(url_for('patient_dashboard'))
 
@@ -928,14 +1043,23 @@ def book_appointment():
 @doctor_required
 def consultations():
     doctor = Doctor.query.get(session['user_id'])
-    appointments = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.created_at.desc()).all()
-    return render_template('consultations.html', doctor=doctor, appointments=appointments)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    pagination = Appointment.query.filter_by(doctor_id=doctor.id).order_by(Appointment.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    appointments = pagination.items
+    
+    return render_template('consultations.html', doctor=doctor, appointments=appointments, pagination=pagination)
 
 @app.route('/patient/medical-records')
 @login_required
 @patient_required
 def medical_records():
     patient = Patient.query.get(session['user_id'])
+    page = request.args.get('page', 1, type=int)
+    per_page = 15
     
     # Get all medical records sorted by date
     medical_files = MedicalFile.query.filter_by(patient_id=patient.id).order_by(MedicalFile.test_date.desc()).all()
@@ -976,9 +1100,41 @@ def medical_records():
     
     timeline.sort(key=lambda x: x['date'], reverse=True)
     
+    # Paginate timeline
+    total = len(timeline)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_timeline = timeline[start:end]
+    
+    from math import ceil
+    total_pages = ceil(total / per_page) if total > 0 else 1
+    
+    class SimplePagination:
+        def __init__(self, page, per_page, total, items):
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.items = items
+            self.pages = total_pages
+            self.has_prev = page > 1
+            self.has_next = page < total_pages
+            self.prev_num = page - 1 if self.has_prev else None
+            self.next_num = page + 1 if self.has_next else None
+        
+        def iter_pages(self, left_edge=1, right_edge=1, left_current=1, right_current=2):
+            last = self.pages
+            for num in range(1, last + 1):
+                if num <= left_edge or (num > self.page - left_current - 1 and num < self.page + right_current) or num > last - right_edge:
+                    yield num
+                else:
+                    yield None
+    
+    pagination = SimplePagination(page, per_page, total, paginated_timeline)
+    
     return render_template('medical_records.html', 
                          patient=patient,
-                         timeline=timeline,
+                         timeline=paginated_timeline,
+                         pagination=pagination,
                          medical_files=medical_files,
                          test_results=test_results,
                          procedures=procedures,
@@ -1329,6 +1485,48 @@ def remove_availability(slot_id):
     
     return redirect(url_for('manage_availability'))
 
+@app.route('/api/doctor/<int:doctor_id>/available-dates')
+@login_required
+@patient_required
+def get_available_dates(doctor_id):
+    """API endpoint to get available dates for a doctor"""
+    from datetime import datetime, timedelta
+    from flask import jsonify
+    
+    available_dates = []
+    for i in range(14):  # Check next 14 days
+        date = datetime.now() + timedelta(days=i+1)
+        date_str = date.strftime('%Y-%m-%d')
+        slots = get_available_slots_for_doctor(doctor_id, date_str)
+        if slots and any(slot['available'] for slot in slots):
+            available_dates.append({
+                'date': date_str,
+                'display': date.strftime('%A, %B %d, %Y')
+            })
+    
+    return jsonify({'dates': available_dates})
+
+@app.route('/api/doctor/<int:doctor_id>/available-times')
+@login_required
+@patient_required
+def get_available_times(doctor_id):
+    """API endpoint to get available times for a doctor on a specific date"""
+    from flask import jsonify, request
+    
+    date = request.args.get('date')
+    if not date:
+        return jsonify({'error': 'Date parameter required'}), 400
+    
+    slots = get_available_slots_for_doctor(doctor_id, date)
+    times_data = []
+    for slot in slots:
+        times_data.append({
+            'time': slot['time'],
+            'available': slot['available']
+        })
+    
+    return jsonify({'times': times_data})
+
 @app.route('/patient/book-appointment/<int:doctor_id>')
 @login_required
 @patient_required
@@ -1342,10 +1540,11 @@ def show_available_slots(doctor_id):
     dates = []
     for i in range(7):
         date = datetime.now() + timedelta(days=i+1)
+        slots_data = get_available_slots_for_doctor(doctor_id, date.strftime('%Y-%m-%d'))
         dates.append({
             'date': date.strftime('%Y-%m-%d'),
             'display': date.strftime('%A, %B %d'),
-            'slots': get_available_slots_for_doctor(doctor_id, date.strftime('%Y-%m-%d'))
+            'slots': slots_data
         })
     
     return render_template('book_appointment.html', doctor=doctor, patient=patient, dates=dates)
@@ -1482,9 +1681,28 @@ def admin_login():
 @admin_required
 def admin_applications():
     """View all doctor applications"""
-    pending = DoctorApplication.query.filter_by(status='pending').all()
-    approved = DoctorApplication.query.filter_by(status='approved').order_by(DoctorApplication.reviewed_at.desc()).limit(10).all()
-    rejected = DoctorApplication.query.filter_by(status='rejected').order_by(DoctorApplication.reviewed_at.desc()).limit(5).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    # Paginate pending applications
+    pending_pagination = DoctorApplication.query.filter_by(status='pending').order_by(DoctorApplication.submitted_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    pending = pending_pagination.items
+    
+    # Paginate approved applications
+    approved_page = request.args.get('approved_page', 1, type=int)
+    approved_pagination = DoctorApplication.query.filter_by(status='approved').order_by(DoctorApplication.reviewed_at.desc()).paginate(
+        page=approved_page, per_page=per_page, error_out=False
+    )
+    approved = approved_pagination.items
+    
+    # Paginate rejected applications
+    rejected_page = request.args.get('rejected_page', 1, type=int)
+    rejected_pagination = DoctorApplication.query.filter_by(status='rejected').order_by(DoctorApplication.reviewed_at.desc()).paginate(
+        page=rejected_page, per_page=per_page, error_out=False
+    )
+    rejected = rejected_pagination.items
     
     # Count today's applications
     today = datetime.now().date()
@@ -1494,6 +1712,9 @@ def admin_applications():
     
     return render_template('admin_applications.html', 
                          pending=pending, approved=approved, rejected=rejected,
+                         pending_pagination=pending_pagination,
+                         approved_pagination=approved_pagination,
+                         rejected_pagination=rejected_pagination,
                          today_count=today_applications)
 
 @app.route('/admin/approve/<int:app_id>')
