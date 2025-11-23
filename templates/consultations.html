@@ -172,8 +172,6 @@
                         {% endif %}
                     </div>
                 </div>
-
-                <!-- Action Buttons -->
                 {% if apt.status == 'pending' %}
                     <div style="display: flex; gap: 8px; justify-content: center;">
                         <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
