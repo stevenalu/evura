@@ -30,7 +30,7 @@
             background: #0d9488;
             color: white;
             padding: 0;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            border-right: 1px solid rgba(0,0,0,0.1);
             position: fixed;
             height: 100vh;
             overflow-y: auto;
@@ -119,9 +119,9 @@
 
         .flash {
             padding: 15px 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
             animation: slideIn 0.3s ease-out;
             display: flex;
             align-items: center;
@@ -161,9 +161,9 @@
 
         .card {
             background: white;
-            border-radius: 15px;
+            border-radius: 8px;
             padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             max-width: 500px;
             width: 100%;
         }
@@ -171,27 +171,28 @@
         .content-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
+            border-radius: 8px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
             max-width: 1200px;
             margin: 0 auto 2rem auto;
         }
 
         .btn {
-            padding: 12px 25px;
+            padding: 14px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -201,8 +202,6 @@
 
         .btn-primary:hover {
             background: #0f766e;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(13, 148, 136, 0.3);
         }
 
         .btn-secondary {
@@ -212,7 +211,6 @@
 
         .btn-secondary:hover {
             background: #4b5563;
-            transform: translateY(-2px);
         }
 
         .btn-success {
@@ -257,7 +255,6 @@
         select:focus {
             outline: none;
             border-color: #0d9488;
-            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
         }
 
         label {
@@ -381,5 +378,19 @@
             .hero-buttons {
                 flex-direction: column;
                 align-items: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 10px;
+            }
+            
+            .hero {
+                padding: 3rem 1rem 2rem;
+            }
+            
+            .features-grid, .benefits-grid, .stats-grid {
+                gap: 1rem;
             }
         }

@@ -4,7 +4,7 @@
 
 {% block content %}
 <!-- Header -->
-<div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+<div style="background: white; border-radius: 8px; padding: 25px; margin-bottom: 30px; border: 1px solid #e5e7eb;">
     <h1 style="font-size: 28px; margin-bottom: 10px;">
         <i class="fas fa-search"></i> Find Doctors
     </h1>
@@ -15,7 +15,7 @@
 {% if doctors %}
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;">
         {% for doctor in doctors %}
-            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; border: 1px solid #e5e7eb; hover: transform: translateY(-5px); hover: box-shadow: 0 8px 25px rgba(13, 148, 136, 0.2); hover: border-color: #0d9488;">
+            <div style="background: white; border-radius: 8px; padding: 25px; transition: all 0.3s ease; border: 1px solid #e5e7eb;">
                 
                 <!-- Doctor Avatar -->
                 <div style="width: 80px; height: 80px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: white; margin: 0 auto 20px;">
@@ -103,7 +103,7 @@
     </div>
 {% else %}
     <!-- Empty State -->
-    <div style="background: white; border-radius: 15px; padding: 60px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div style="background: white; border-radius: 8px; padding: 60px; text-align: center; border: 1px solid #e5e7eb;">
         <i class="fas fa-user-md" style="font-size: 48px; color: #9ca3af; margin-bottom: 20px;"></i>
         <h3 style="color: #4b5563; margin-bottom: 10px;">No Doctors Available</h3>
         <p style="color: #6b7280;">There are currently no doctors registered in the system.</p>
@@ -111,7 +111,7 @@
 {% endif %}
 
 <!-- Information Box -->
-<div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 20px; border-radius: 10px; margin-top: 30px;">
+<div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 20px; border-radius: 8px; margin-top: 30px; border: 1px solid #99f6e4;">
     <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Smart Doctor Selection</h4>
     <p style="color: #047857; line-height: 1.6; margin: 0;">
         All doctors on E-Vura have access to your complete medical history, including any chronic conditions. 
