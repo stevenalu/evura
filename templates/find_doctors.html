@@ -2,6 +2,314 @@
 
 {% block title %}Find Doctors - E-Vura{% endblock %}
 
+{% block extra_css %}
+<style>
+    .search-filters-container {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .search-filters-row {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    
+    .search-bar {
+        position: relative;
+        flex: 1;
+        min-width: 250px;
+    }
+    
+    .search-bar input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.75rem;
+        border: 1px solid #d1d9e0;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+    
+    .search-bar input:focus {
+        outline: none;
+        border-color: #0d9488;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+    }
+    
+    .search-bar i {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #57606a;
+        font-size: 0.875rem;
+    }
+    
+    .filters-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        min-width: 180px;
+    }
+    
+    .filter-group label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #57606a;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .filter-group select {
+        padding: 0.625rem 0.875rem;
+        border: 1px solid #d1d9e0;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        background: white;
+        color: #24292f;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-group select:focus {
+        outline: none;
+        border-color: #0d9488;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+    }
+    
+    .view-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .results-count {
+        color: #57606a;
+        font-size: 0.875rem;
+    }
+    
+    .results-count strong {
+        color: #24292f;
+    }
+    
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        background: #f6f8fa;
+        padding: 0.25rem;
+        border-radius: 6px;
+        border: 1px solid #d1d9e0;
+    }
+    
+    .view-toggle button {
+        padding: 0.5rem 0.75rem;
+        border: none;
+        background: transparent;
+        color: #57606a;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .view-toggle button.active {
+        background: white;
+        color: #0d9488;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .view-toggle button:hover {
+        color: #0d9488;
+    }
+    
+    .doctors-grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        width: 100%;
+    }
+    
+    .doctors-list-view {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+    }
+    
+    .doctor-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .doctor-card:hover {
+        border-color: #0d9488;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .doctor-list-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .doctor-list-item:hover {
+        border-color: #0d9488;
+        box-shadow: 0 2px 8px rgba(13, 148, 136, 0.1);
+    }
+    
+    .doctor-list-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #0d9488;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .doctor-list-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .doctor-list-info h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+    
+    .doctor-list-info .specialization {
+        color: #0d9488;
+        font-weight: 500;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .doctor-list-details {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-size: 0.8125rem;
+        color: #6b7280;
+    }
+    
+    .doctor-list-details span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .doctor-list-details i {
+        color: #0d9488;
+        font-size: 0.75rem;
+    }
+    
+    .doctor-list-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d9e0;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #24292f;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    
+    .pagination a:hover {
+        border-color: #0d9488;
+        color: #0d9488;
+        background: #f0fdfa;
+    }
+    
+    .pagination .current {
+        background: #0d9488;
+        color: white;
+        border-color: #0d9488;
+        font-weight: 600;
+    }
+    
+    .pagination .disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    @media (max-width: 768px) {
+        .search-filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .filters-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+        
+        .doctor-list-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .doctor-list-actions {
+            width: 100%;
+        }
+        
+        .doctor-list-actions .btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Header -->
 <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; width: 100%;">
@@ -11,12 +319,110 @@
     <p style="color: #6b7280; font-size: 0.8125rem;">Browse our network of qualified healthcare professionals</p>
 </div>
 
-<!-- Doctors Grid -->
-{% if doctors %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 100%;">
-        {% for doctor in doctors %}
-            <div style="background: white; border-radius: 8px; padding: 20px; transition: all 0.3s ease; border: 1px solid #e5e7eb;">
+<!-- Search and Filters -->
+<div class="search-filters-container">
+    <form method="GET" action="{{ url_for('find_doctors') }}" id="searchForm">
+        <div class="search-filters-row">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" 
+                       name="search" 
+                       placeholder="Search by name, specialization, or hospital..." 
+                       value="{{ search_query or '' }}"
+                       autocomplete="off">
+            </div>
+            
+            <div class="filters-group">
+                <div class="filter-group">
+                    <select name="specialization" onchange="document.getElementById('searchForm').submit()">
+                        <option value="">All Specializations</option>
+                        {% for spec in specializations %}
+                        <option value="{{ spec }}" {% if specialization_filter == spec %}selected{% endif %}>
+                            {{ spec }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 
+                <div class="filter-group">
+                    <select name="hospital" onchange="document.getElementById('searchForm').submit()">
+                        <option value="">All Hospitals</option>
+                        {% for hosp in hospitals %}
+                        <option value="{{ hosp }}" {% if hospital_filter == hosp %}selected{% endif %}>
+                            {{ hosp }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- View Controls -->
+<div class="view-controls">
+    <div class="results-count">
+        <strong>{{ pagination.total if pagination else doctors|length }}</strong> doctor{{ 's' if (pagination.total if pagination else doctors|length) != 1 else '' }} found
+    </div>
+    
+    <div class="view-toggle">
+        <button type="button" class="active" id="listViewBtn" onclick="switchView('list')">
+            <i class="fas fa-list"></i> List
+        </button>
+        <button type="button" id="cardViewBtn" onclick="switchView('card')">
+            <i class="fas fa-th"></i> Cards
+        </button>
+    </div>
+</div>
+
+<!-- Doctors Grid/List -->
+{% if doctors %}
+    <!-- List View (Default) -->
+    <div id="listView" class="doctors-list-view">
+        {% for doctor in doctors %}
+            <div class="doctor-list-item">
+                <div class="doctor-list-avatar">
+                    {{ doctor.username[0]|upper }}
+                </div>
+                
+                <div class="doctor-list-info">
+                    <h3>Dr. {{ doctor.username }}</h3>
+                    <div class="specialization">{{ doctor.specialization or 'General Practice' }}</div>
+                    <div class="doctor-list-details">
+                        {% if doctor.hospital %}
+                        <span><i class="fas fa-hospital"></i> {{ doctor.hospital }}</span>
+                        {% endif %}
+                        {% if doctor.years_experience %}
+                        <span><i class="fas fa-calendar-check"></i> {{ doctor.years_experience }} years</span>
+                        {% endif %}
+                        <span><i class="fas fa-users"></i> 
+                            {% set unique_patients = doctor.appointments|map(attribute='patient_id')|list|unique|list|length %}
+                            {{ unique_patients }} patients
+                        </span>
+                        <span><i class="fas fa-check-circle"></i> 
+                            {{ doctor.appointments|selectattr('status', 'equalto', 'completed')|list|length }} consultations
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="doctor-list-actions">
+                    <a href="{{ url_for('view_doctor_profile', doctor_id=doctor.id) }}" 
+                       class="btn btn-secondary" style="padding: 0.625rem 1rem; font-size: 0.8125rem; text-decoration: none;">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    <a href="{{ url_for('show_available_slots', doctor_id=doctor.id) }}" 
+                       class="btn btn-primary" style="padding: 0.625rem 1rem; font-size: 0.8125rem; text-decoration: none;">
+                        <i class="fas fa-calendar-plus"></i> Book
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Card View -->
+    <div id="cardView" class="doctors-grid-view" style="display: none;">
+        {% for doctor in doctors %}
+            <div class="doctor-card">
                 <!-- Doctor Avatar -->
                 <div style="width: 60px; height: 60px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: white; margin: 0 auto 16px;">
                     {{ doctor.username[0]|upper }}
@@ -50,20 +456,6 @@
                     <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; color: #4b5563;">
                         <i class="fas fa-calendar-check" style="width: 18px; color: #0d9488; margin-right: 10px;"></i>
                         {{ doctor.years_experience }} years experience
-                    </div>
-                    {% endif %}
-                    
-                    {% if doctor.phone %}
-                    <div style="display: flex; align-items: center; margin-bottom: 8px; font-size: 14px; color: #4b5563;">
-                        <i class="fas fa-phone" style="width: 18px; color: #0d9488; margin-right: 10px;"></i>
-                        {{ doctor.phone }}
-                    </div>
-                    {% endif %}
-                    
-                    {% if doctor.license_number %}
-                    <div style="display: flex; align-items: center; font-size: 14px; color: #4b5563;">
-                        <i class="fas fa-certificate" style="width: 18px; color: #0d9488; margin-right: 10px;"></i>
-                        License: {{ doctor.license_number }}
                     </div>
                     {% endif %}
                 </div>
@@ -101,22 +493,83 @@
             </div>
         {% endfor %}
     </div>
+    
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('find_doctors', page=pagination.prev_num, search=search_query, specialization=specialization_filter, hospital=hospital_filter) }}">
+            <i class="fas fa-chevron-left"></i> Previous
+        </a>
+        {% else %}
+        <span class="disabled"><i class="fas fa-chevron-left"></i> Previous</span>
+        {% endif %}
+        
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                <span class="current">{{ page_num }}</span>
+                {% else %}
+                <a href="{{ url_for('find_doctors', page=page_num, search=search_query, specialization=specialization_filter, hospital=hospital_filter) }}">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+            {% else %}
+                <span>...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+        <a href="{{ url_for('find_doctors', page=pagination.next_num, search=search_query, specialization=specialization_filter, hospital=hospital_filter) }}">
+            Next <i class="fas fa-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="disabled">Next <i class="fas fa-chevron-right"></i></span>
+        {% endif %}
+    </div>
+    {% endif %}
 {% else %}
     <!-- Empty State -->
     <div style="background: white; border-radius: 8px; padding: 60px; text-align: center; border: 1px solid #e5e7eb;">
         <i class="fas fa-user-md" style="font-size: 48px; color: #9ca3af; margin-bottom: 20px;"></i>
-        <h3 style="color: #4b5563; margin-bottom: 10px;">No Doctors Available</h3>
-        <p style="color: #6b7280;">There are currently no doctors registered in the system.</p>
+        <h3 style="color: #4b5563; margin-bottom: 10px;">
+            {% if search_query or specialization_filter or hospital_filter %}
+            No Doctors Found
+            {% else %}
+            No Doctors Available
+            {% endif %}
+        </h3>
+        <p style="color: #6b7280; margin-bottom: 20px;">
+            {% if search_query or specialization_filter or hospital_filter %}
+            Try adjusting your search or filters to find more doctors.
+            {% else %}
+            There are currently no doctors registered in the system.
+            {% endif %}
+        </p>
     </div>
 {% endif %}
 
-<!-- Information Box -->
-<div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 20px; border-radius: 8px; margin-top: 30px; border: 1px solid #99f6e4;">
-    <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Smart Doctor Selection</h4>
-    <p style="color: #047857; line-height: 1.6; margin: 0;">
-        All doctors on E-Vura have access to your complete medical history, including any chronic conditions. 
-        This means whether you choose a specialist or general practitioner, they'll have full context about your health journey 
-        from your very first consultation.
-    </p>
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchView(view) {
+        const listView = document.getElementById('listView');
+        const cardView = document.getElementById('cardView');
+        const listBtn = document.getElementById('listViewBtn');
+        const cardBtn = document.getElementById('cardViewBtn');
+        
+        if (view === 'list') {
+            listView.style.display = 'flex';
+            cardView.style.display = 'none';
+            listBtn.classList.add('active');
+            cardBtn.classList.remove('active');
+        } else {
+            listView.style.display = 'none';
+            cardView.style.display = 'grid';
+            cardBtn.classList.add('active');
+            listBtn.classList.remove('active');
+        }
+    }
+</script>
 {% endblock %}

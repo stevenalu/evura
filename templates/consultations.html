@@ -101,47 +101,45 @@
                 {% set patient_records = apt.patient.records %}
                 {% if patient_records %}
                 <div style="background: #f0fdfa; border: 1px solid #14b8a6; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    <h4 style="color: #065f46; margin-bottom: 15px; font-size: 16px;">
-                        <i class="fas fa-history"></i> Complete Medical History 
-                        <span style="font-size: 14px; font-weight: normal;">({{ patient_records|length }} records available)</span>
-                    </h4>
-                    {% for record in patient_records[:3] %}
-                        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #10b981;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                                <h5 style="color: #0d9488; margin: 0; font-size: 14px; font-weight: 600;">
-                                    {{ record.visit_date }} - Dr. {{ record.doctor.username }}
-                                </h5>
-                                {% if record.follow_up_required %}
-                                <span style="background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">
-                                    Follow-up Required
-                                </span>
+                    <div class="medical-history-toggle" onclick="toggleMedicalHistory(this)" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0;">
+                        <h4 style="color: #065f46; margin-bottom: 0; font-size: 16px;">
+                            <i class="fas fa-history"></i> Complete Medical History 
+                            <span style="font-size: 14px; font-weight: normal;">({{ patient_records|length }} records available)</span>
+                        </h4>
+                        <i class="fas fa-chevron-down toggle-icon" style="color: #065f46; font-size: 14px;"></i>
+                    </div>
+                    <div class="medical-history-content" style="display: none; margin-top: 15px;">
+                        {% for record in patient_records %}
+                            <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #10b981;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <h5 style="color: #0d9488; margin: 0; font-size: 14px; font-weight: 600;">
+                                        {{ record.visit_date }} - Dr. {{ record.doctor.username }}
+                                    </h5>
+                                    {% if record.follow_up_required %}
+                                    <span style="background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;">
+                                        Follow-up Required
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <strong style="color: #374151; font-size: 13px;">Diagnosis:</strong>
+                                    <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.diagnosis }}</span>
+                                </div>
+                                {% if record.treatment %}
+                                <div style="margin-bottom: 8px;">
+                                    <strong style="color: #374151; font-size: 13px;">Treatment:</strong>
+                                    <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.treatment }}</span>
+                                </div>
+                                {% endif %}
+                                {% if record.prescription %}
+                                <div>
+                                    <strong style="color: #374151; font-size: 13px;">Prescription:</strong>
+                                    <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.prescription }}</span>
+                                </div>
                                 {% endif %}
                             </div>
-                            <div style="margin-bottom: 8px;">
-                                <strong style="color: #374151; font-size: 13px;">Diagnosis:</strong>
-                                <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.diagnosis }}</span>
-                            </div>
-                            {% if record.treatment %}
-                            <div style="margin-bottom: 8px;">
-                                <strong style="color: #374151; font-size: 13px;">Treatment:</strong>
-                                <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.treatment }}</span>
-                            </div>
-                            {% endif %}
-                            {% if record.prescription %}
-                            <div>
-                                <strong style="color: #374151; font-size: 13px;">Prescription:</strong>
-                                <span style="color: #4b5563; font-size: 13px; margin-left: 8px;">{{ record.prescription }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    {% if patient_records|length > 3 %}
-                        <div style="text-align: center; margin-top: 15px;">
-                            <span style="color: #059669; font-weight: 600; font-size: 14px;">
-                                + {{ patient_records|length - 3 }} more medical records in patient's complete history
-                            </span>
-                        </div>
-                    {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
                 {% else %}
                 <div style="background: #fef7f0; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
@@ -177,30 +175,30 @@
 
                 <!-- Action Buttons -->
                 {% if apt.status == 'pending' %}
-                    <div style="display: flex; gap: 12px;">
-                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
                             <input type="hidden" name="status" value="confirmed">
-                            <button type="submit" class="btn btn-success" style="width: 100%; padding: 12px; font-size: 15px;">
-                                <i class="fas fa-check"></i> Accept Appointment Request
+                            <button type="submit" class="btn btn-success" style="padding: 8px 16px; font-size: 0.8125rem;">
+                                <i class="fas fa-check"></i> Accept
                             </button>
                         </form>
-                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
                             <input type="hidden" name="status" value="cancelled">
-                            <button type="submit" class="btn btn-danger" style="width: 100%; padding: 12px; font-size: 15px;">
-                                <i class="fas fa-times"></i> Reject Request
+                            <button type="submit" class="btn btn-danger" style="padding: 8px 16px; font-size: 0.8125rem;">
+                                <i class="fas fa-times"></i> Reject
                             </button>
                         </form>
                     </div>
                 {% elif apt.status == 'confirmed' %}
-                    <div style="display: flex; gap: 12px;">
-                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline; flex: 1;">
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <form method="POST" action="{{ url_for('update_appointment_status', appointment_id=apt.id) }}" style="display: inline;">
                             <input type="hidden" name="status" value="completed">
-                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">
-                                <i class="fas fa-check-double"></i> Mark Consultation as Completed
+                            <button type="submit" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.8125rem;">
+                                <i class="fas fa-check-double"></i> Complete
                             </button>
                         </form>
-                        <button onclick="showAddRecordModal({{ apt.id }})" class="btn btn-secondary" style="padding: 12px;">
-                            <i class="fas fa-file-medical"></i> Add Medical Record
+                        <button onclick="showAddRecordModal({{ apt.id }})" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.8125rem;">
+                            <i class="fas fa-file-medical"></i> Add Record
                         </button>
                     </div>
                 {% else %}
@@ -220,17 +218,52 @@
             </a>
         </div>
     {% endif %}
+    
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 2rem; flex-wrap: wrap;">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('consultations', page=pagination.prev_num) }}" 
+           class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; text-decoration: none;">
+            <i class="fas fa-chevron-left"></i> Previous
+        </a>
+        {% else %}
+        <span class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; opacity: 0.5; cursor: not-allowed;">
+            <i class="fas fa-chevron-left"></i> Previous
+        </span>
+        {% endif %}
+        
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                <span style="padding: 0.5rem 0.75rem; border: 1px solid #0d9488; border-radius: 6px; background: #0d9488; color: white; font-size: 0.875rem; font-weight: 600;">
+                    {{ page_num }}
+                </span>
+                {% else %}
+                <a href="{{ url_for('consultations', page=page_num) }}" 
+                   style="padding: 0.5rem 0.75rem; border: 1px solid #d1d9e0; border-radius: 6px; text-decoration: none; color: #24292f; font-size: 0.875rem; transition: all 0.2s ease;">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+            {% else %}
+                <span style="padding: 0.5rem 0.75rem; color: #57606a;">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+        <a href="{{ url_for('consultations', page=pagination.next_num) }}" 
+           class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; text-decoration: none;">
+            Next <i class="fas fa-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; opacity: 0.5; cursor: not-allowed;">
+            Next <i class="fas fa-chevron-right"></i>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
-<!-- Information Box -->
-<div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 25px; border-radius: 8px; margin-top: 30px; border: 1px solid #99f6e4;">
-    <h4 style="color: #065f46; margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Comprehensive Patient Care with E-Vura</h4>
-    <p style="color: #047857; line-height: 1.8; margin: 0; font-size: 15px;">
-        E-Vura provides you with each patient's complete medical timeline, including <strong>chronic conditions</strong>, <strong>previous treatments</strong>, 
-        and <strong>consultation history</strong>. This comprehensive view ensures you have full context for accurate diagnosis and treatment decisions, 
-        even if it's the patient's first visit with you. <strong>No more starting from scratch</strong> - deliver superior patient care with complete medical insights.
-    </p>
-</div>
 
 <!-- Add Medical Record Modal -->
 <div id="addRecordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
@@ -291,7 +324,20 @@
         document.getElementById('addRecordModal').style.display = 'none';
     }
 
-    // Close modal on outside click
+    function toggleMedicalHistory(element) {
+        const content = element.nextElementSibling;
+        const icon = element.querySelector('.toggle-icon');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            content.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
+
     document.getElementById('addRecordModal').addEventListener('click', function(e) {
         if (e.target === this) {
             hideAddRecordModal();

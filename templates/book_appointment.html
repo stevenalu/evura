@@ -119,14 +119,58 @@
         cursor: pointer;
         transition: all 0.2s ease;
         text-align: center;
+        position: relative;
+        width: 100%;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
     
-    .slot-button:hover {
+    .slot-button:hover:not(:disabled) {
         border-color: #0d9488;
         background: #f0fdfa;
         color: #0d9488;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+    }
+    
+    .slot-button:disabled {
+        background: #f6f8fa;
+        border-color: #d1d9e0;
+        color: #8b949e;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .slot-button.booked {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #92400e;
+        position: relative;
+        cursor: not-allowed;
+        padding-bottom: 1.5rem;
+    }
+    
+    .slot-button.booked:disabled {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #92400e;
+        opacity: 1;
+    }
+    
+    .booked-label {
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.625rem;
+        font-weight: 600;
+        color: #f59e0b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        line-height: 1;
     }
     
     .empty-state {
@@ -237,15 +281,22 @@
                     <i class="fas fa-calendar"></i> {{ date_info.display }}
                 </div>
                 <div class="slots-grid">
-                    {% for slot in date_info.slots %}
-                    <form action="{{ url_for('book_appointment') }}" method="POST" style="display: inline; width: 100%;">
-                        <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
-                        <input type="hidden" name="date" value="{{ date_info.date }}">
-                        <input type="hidden" name="time" value="{{ slot }}">
-                        <button type="submit" class="slot-button" style="width: 100%;">
-                            {{ slot }}
+                    {% for slot_data in date_info.slots %}
+                        {% if slot_data.available %}
+                        <form action="{{ url_for('book_appointment') }}" method="POST" style="display: inline; width: 100%;">
+                            <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+                            <input type="hidden" name="date" value="{{ date_info.date }}">
+                            <input type="hidden" name="time" value="{{ slot_data.time }}">
+                            <button type="submit" class="slot-button">
+                                {{ slot_data.time }}
+                            </button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="slot-button booked" disabled title="This slot is already booked">
+                            {{ slot_data.time }}
+                            <span class="booked-label">Booked</span>
                         </button>
-                    </form>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
